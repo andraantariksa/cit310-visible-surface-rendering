@@ -8,16 +8,16 @@
 #include "../Component/SphereComponent.hpp"
 
 App::App():
-	m_Window(sf::VideoMode(640, 480), "ImGui + SFML = <3"),
+	m_Window(sf::VideoMode(800, 800), "ImGui + SFML = <3"),
     m_ClearColor(96.0f, 96.0f, 96.0f),
-    m_Sphere1Radius(5.0f)
+    m_Sphere1Radius(1.0f)
 {
-	m_Window.setFramerateLimit(30);
+	m_Window.setFramerateLimit(20);
     ImGui::SFML::Init(m_Window);
 
     const entt::entity sphere1 = m_Registry.create();
     m_Registry.emplace<PositionComponent>(sphere1, glm::vec3(0.0f, 0.0f, 0.0f));
-    m_Registry.emplace<SphereComponent>(sphere1, 1.0f);
+    m_Registry.emplace<SphereComponent>(sphere1, 200.0f);
 }
 
 App::~App()
@@ -67,7 +67,7 @@ void App::Update()
 
 void App::Render()
 {
-    ImGui::SFML::Render(m_Window);
     m_SystemRender.Render(m_Registry, m_Window);
+    ImGui::SFML::Render(m_Window);
     m_Window.display();
 }
