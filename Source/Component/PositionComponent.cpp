@@ -1,9 +1,7 @@
 #include "PositionComponent.hpp"
 
-PositionComponent::PositionComponent(float x, float y, float z) noexcept
-	: x(x),
-	  y(y),
-	  z(z)
+PositionComponent::PositionComponent(glm::vec3 position) noexcept
+	: m_Position(position)
 {
 }
 

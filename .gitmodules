@@ -1,9 +1,12 @@
-[submodule "lib/imgui-sfml"]
-	path = lib/imgui-sfml
+[submodule "Lib/imgui-sfml"]
+	path = Lib/imgui-sfml
 	url = https://github.com/eliasdaler/imgui-sfml.git
-[submodule "lib/imgui"]
-	path = lib/imgui
+[submodule "Lib/imgui"]
+	path = Lib/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "Lib/entt"]
 	path = Lib/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "Lib/glm"]
+	path = Lib/glm
+	url = https://github.com/g-truc/glm.git

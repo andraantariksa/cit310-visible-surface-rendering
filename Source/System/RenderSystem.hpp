@@ -9,7 +9,7 @@ class RenderSystem
 public:
 	RenderSystem() = default;
 	~RenderSystem() = default;
-	void Render(sf::RenderWindow* window, entt::basic_registry<entt::entity>& registry);
+	void Render(entt::registry& registry, sf::RenderWindow& window);
 };
 
 #endif

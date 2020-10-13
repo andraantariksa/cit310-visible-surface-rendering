@@ -6,7 +6,15 @@ set(EXECUTABLE_NAME "Spheros")
 add_executable(${EXECUTABLE_NAME}
 	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
 	"Source/Main.cpp"
-	"Source/Core/App.cpp" "Source/Component/PositionComponent.cpp" "Source/Component/SphereComponent.cpp" "Source/Component/SphereComponent.hpp" "Source/System/RenderSystem.cpp" "Source/System/RenderSystem.hpp" "Source/Tags/SphereTag.cpp")
+	"Source/Core/App.cpp" "Source/Component/PositionComponent.cpp" "Source/Component/SphereComponent.cpp" "Source/Component/SphereComponent.hpp" "Source/System/RenderSystem.cpp" "Source/System/RenderSystem.hpp"  "Source/System/TransformSystem.cpp")
+
+if (MSVC_VERSION GREATER_EQUAL "1900")
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
+    if (_cpp_latest_flag_supported)
+        target_compile_options(${EXECUTABLE_NAME} PRIVATE "/std:c++latest")
+    endif()
+endif()
 
 if (WIN32)
 	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
@@ -66,4 +74,5 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
 	"${CMAKE_SOURCE_DIR}/Lib/SFML/include"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui"
-	"${CMAKE_SOURCE_DIR}/Lib/entt/single_include")
+	"${CMAKE_SOURCE_DIR}/Lib/entt/single_include"
+	"${CMAKE_SOURCE_DIR}/Lib/glm")

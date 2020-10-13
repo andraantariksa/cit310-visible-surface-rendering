@@ -1,21 +1,23 @@
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include <imgui.h>
+#include <glm/glm.hpp>
 
 #include "App.hpp"
+#include "../Component/PositionComponent.hpp"
 #include "../Component/SphereComponent.hpp"
-#include "../Tags/SphereTags.hpp"
 
 App::App():
-	window(sf::VideoMode(640, 480), "ImGui + SFML = <3")
+	m_Window(sf::VideoMode(640, 480), "ImGui + SFML = <3"),
+    m_ClearColor(96.0f, 96.0f, 96.0f),
+    m_Sphere1Radius(5.0f)
 {
-	window.setFramerateLimit(30);
-    ImGui::SFML::Init(window);
+	m_Window.setFramerateLimit(30);
+    ImGui::SFML::Init(m_Window);
 
-    const auto sphere1 = registry.create();
-    // TODO
-    //registry.emplace<SphereTag>(sphere1);
-    //registry.emplace<SphereComponent>(sphere1, 1);
+    const entt::entity sphere1 = m_Registry.create();
+    m_Registry.emplace<PositionComponent>(sphere1, glm::vec3(0.0f, 0.0f, 0.0f));
+    m_Registry.emplace<SphereComponent>(sphere1, 1.0f);
 }
 
 App::~App()
@@ -25,38 +27,47 @@ App::~App()
 
 void App::Run()
 {
-	while (window.isOpen())
+	while (m_Window.isOpen())
 	{
-        window.clear(sf::Color::White);
         sf::Event event;
-        while (window.pollEvent(event))
+        while (m_Window.pollEvent(event))
         {
             ImGui::SFML::ProcessEvent(event);
 
             if (event.type == sf::Event::Closed)
-                window.close();
+                m_Window.close();
         }
 
         UpdateInterface();
+        Update();
 
+        m_Window.clear(m_ClearColor);
         Render();
 
-        deltaClock.restart();
+        m_DeltaClock.restart();
 	}
 }
 
 void App::UpdateInterface()
 {
-    ImGui::SFML::Update(window, deltaClock.getElapsedTime());
+    ImGui::SFML::Update(m_Window, m_DeltaClock.getElapsedTime());
 
-    ImGui::Begin("Hello, world!");
-    ImGui::Button("Look at this pretty button");
+    if(ImGui::Begin("Sphere"))
+    {
+        ImGui::InputFloat("Radius", &m_Sphere1Radius, 0.01f, 1.0f, 2);
+        ImGui::Button("Look at this pretty button");
+    }
     ImGui::End();
+}
 
-    ImGui::SFML::Render(window);
+void App::Update()
+{
+    m_SystemTransform.Update(m_Registry, nullptr);
 }
 
 void App::Render()
 {
-    window.display();
+    ImGui::SFML::Render(m_Window);
+    m_SystemRender.Render(m_Registry, m_Window);
+    m_Window.display();
 }

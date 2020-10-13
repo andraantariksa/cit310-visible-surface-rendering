@@ -5,22 +5,30 @@
 #include <entt/entt.hpp>
 
 #include "../System/RenderSystem.hpp"
+#include "../System/TransformSystem.hpp"
 
 class App
 {
 private:
-	sf::RenderWindow window;
-	sf::Clock deltaClock;
-	entt::registry registry;
+	sf::RenderWindow m_Window;
+	sf::Clock m_DeltaClock;
+	entt::registry m_Registry;
 
+	sf::Color m_ClearColor;
+
+	// GUI value
+	// Should be refactored
+	float m_Sphere1Radius;
 	// System
-	RenderSystem system_render;
+	RenderSystem m_SystemRender;
+	TransformSystem m_SystemTransform;
 public:
 	App();
 	~App();
 
 	void Run();
 	void UpdateInterface();
+	void Update();
 	void Render();
 };
 
