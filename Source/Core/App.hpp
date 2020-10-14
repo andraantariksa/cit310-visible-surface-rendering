@@ -18,7 +18,19 @@ private:
 
 	// GUI value
 	// Should be refactored
-	float m_Sphere1Radius;
+	float m_GUISphereRadius;
+	int m_GUISphereLongitude;
+	int m_GUISphereLatitude;
+	float m_GUISphereTranslateX;
+	float m_GUISphereTranslateY;
+	float m_GUISphereTranslateZ;
+	float m_GUISphereRotationX;
+	float m_GUISphereRotationY;
+	float m_GUISphereRotationZ;
+	float m_GUISpherePositionX;
+	float m_GUISpherePositionY;
+	float m_GUISpherePositionZ;
+
 	// System
 	RenderSystem m_SystemRender;
 	TransformSystem m_SystemTransform;

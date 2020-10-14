@@ -3,13 +3,18 @@
 
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
+#include <glm/glm.hpp>
 
 class RenderSystem
 {
 public:
-	RenderSystem() = default;
+	// Viewer Transform * Screen Transform
+	glm::mat4x4 m_MatTransform;
+
+	RenderSystem();
 	~RenderSystem() = default;
 	void Render(entt::registry& registry, sf::RenderWindow& window);
+	inline sf::Vector2f Normalize3DToProjection(const glm::vec4& v);
 };
 
 #endif
