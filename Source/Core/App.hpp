@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 #include "../System/RenderSystem.hpp"
 #include "../System/TransformSystem.hpp"
@@ -24,12 +25,9 @@ private:
 	float m_GUISphereTranslateX;
 	float m_GUISphereTranslateY;
 	float m_GUISphereTranslateZ;
-	float m_GUISphereRotationX;
-	float m_GUISphereRotationY;
-	float m_GUISphereRotationZ;
-	float m_GUISpherePositionX;
-	float m_GUISpherePositionY;
-	float m_GUISpherePositionZ;
+	int m_GUISphereRotationAxis;
+	float m_GUISphereRotationDegree;
+	bool m_GUISphereBackfaceCulling;
 
 	// System
 	RenderSystem m_SystemRender;

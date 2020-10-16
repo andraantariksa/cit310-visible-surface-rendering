@@ -5,16 +5,18 @@
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
 
+#include "../Component/TransformComponent.hpp"
+
 class RenderSystem
 {
 public:
 	// Viewer Transform * Screen Transform
-	glm::mat4x4 m_MatTransform;
+	glm::mat4 m_MatTransform;
 
 	RenderSystem();
 	~RenderSystem() = default;
 	void Render(entt::registry& registry, sf::RenderWindow& window);
-	inline sf::Vector2f Normalize3DToProjection(const glm::vec4& v);
+	inline sf::Vector2f Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform);
 };
 
 #endif

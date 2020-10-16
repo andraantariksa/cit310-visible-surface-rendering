@@ -1,4 +1,5 @@
-﻿#include "Core/App.hpp"
+﻿#include "Util/Logger.hpp"
+#include "Core/App.hpp"
 
 int main()
 {
