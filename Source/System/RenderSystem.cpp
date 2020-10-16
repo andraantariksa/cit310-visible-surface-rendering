@@ -23,7 +23,7 @@ RenderSystem::RenderSystem():
 
 	m_MatTransform *= glm::mat4(
 		glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, scaleY, 0.0f, 0.0f),
+		glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
 		glm::vec4(0.0f, 0.0f, 0.0f, 0.0f),
 		glm::vec4(translateX, translateY, 0.0f, 1.0f)
 	);
@@ -33,16 +33,88 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 {
 	registry.view<SphereComponent, TransformComponent>().each([&](auto entity, SphereComponent& sphere, const TransformComponent& transform)
 	{
+			// Draw the vertex
+			/*
 			auto circle = sf::CircleShape(2.0f);
 			circle.setFillColor(sf::Color::Red);
-			for (std::size_t latitude_iter = 0; latitude_iter < sphere.m_NLatitude; latitude_iter++)
+			for (glm::vec4& vertex : sphere.m_Vertices)
 			{
-				for (std::size_t longitude_iter = 0; longitude_iter < sphere.m_NLongitude; longitude_iter++)
+				auto s = Normalize3DToProjection(vertex, transform);
+				circle.setPosition(s);
+				window.draw(circle);
+			}
+			*/
+
+			// In case you want to use surface
+			//sf::ConvexShape convex(3);
+			//convex.setFillColor(sf::Color::Green);
+			//convex.setOutlineColor(sf::Color::Green);
+			//convex.setOutlineThickness(1.0f);
+
+			// Bottom part
+			for (size_t i = 0; i < sphere.m_NLongitude - 1; ++i)
+			{
+				sf::Vertex line[] =
 				{
-					auto s = Normalize3DToProjection(sphere.m_Coord[latitude_iter][longitude_iter], transform);
- 					circle.setPosition(s);
-					window.draw(circle);
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[0], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[i + 2], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[i + 2], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[0], transform))
+				};
+				window.draw(line, 6, sf::Lines);
+
+				// In case you want to use surface
+				//convex.setPoint(0, Normalize3DToProjection(sphere.m_Vertices[0], transform));
+				//convex.setPoint(1, Normalize3DToProjection(sphere.m_Vertices[i + 1], transform));
+				//convex.setPoint(2, Normalize3DToProjection(sphere.m_Vertices[i + 2], transform));
+				//window.draw(convex);
+			}
+
+			// Middle part
+			for (size_t i = 1; i < sphere.m_NLatitude * 2 - 1; ++i)
+			{
+				for (size_t j = 0; j < sphere.m_NLongitude - 1; ++j)
+				{
+					sf::Vertex line[] =
+					{
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform))
+					};
+					window.draw(line, 6, sf::Lines);
 				}
+				size_t j = sphere.m_NLongitude - 1;
+				sf::Vertex line[] =
+				{
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform))
+				};
+				window.draw(line, 6, sf::Lines);
+			}
+
+			// Top part
+			const size_t topMostVertex = sphere.m_NLongitude * (sphere.m_NLatitude * 2 - 1) + 2 - 1;
+			for (size_t i = 0; i < sphere.m_NLongitude - 1; ++i)
+			{
+				sf::Vertex line[] =
+				{
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
+					sf::Vertex(Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform))
+				};
+				window.draw(line, 6, sf::Lines);
 			}
 	});
 }

@@ -9,7 +9,7 @@
 
 App::App():
 	m_Window(sf::VideoMode(900, 600), "Spheros", sf::Style::Titlebar | sf::Style::Close),
-    m_ClearColor(96.0f, 96.0f, 96.0f),
+    m_ClearColor(96, 96, 96),
     m_GUISphereRadius(1.0f),
     m_GUISphereTranslateX(0.0f),
     m_GUISphereTranslateY(0.0f),
@@ -24,7 +24,7 @@ App::App():
 
     const entt::entity sphere1 = m_Registry.create();
     m_Registry.emplace<TransformComponent>(sphere1);
-    m_Registry.emplace<SphereComponent>(sphere1, 200.0f, 25, 25);
+    m_Registry.emplace<SphereComponent>(sphere1, 200.0f, m_GUISphereLongitude, m_GUISphereLatitude);
 }
 
 App::~App()
