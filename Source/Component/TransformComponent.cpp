@@ -41,3 +41,8 @@ void TransformComponent::RotateZ(float deg)
 {
 	m_MatTransform *= glm::rotate(deg * PI / 180.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 }
+
+void TransformComponent::Rotate(float deg, glm::vec3& rotationAxis)
+{
+	m_MatTransform *= glm::rotate(deg * PI / 180.0f, rotationAxis);
+}

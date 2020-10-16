@@ -37,7 +37,7 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 			/*
 			auto circle = sf::CircleShape(2.0f);
 			circle.setFillColor(sf::Color::Red);
-			for (glm::vec4& vertex : sphere.m_Vertices)
+			for (glm::vec4& vertex : m_EntitySphere.m_Vertices)
 			{
 				auto s = Normalize3DToProjection(vertex, transform);
 				circle.setPosition(s);
@@ -66,9 +66,9 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				window.draw(line, 6, sf::Lines);
 
 				// In case you want to use surface
-				//convex.setPoint(0, Normalize3DToProjection(sphere.m_Vertices[0], transform));
-				//convex.setPoint(1, Normalize3DToProjection(sphere.m_Vertices[i + 1], transform));
-				//convex.setPoint(2, Normalize3DToProjection(sphere.m_Vertices[i + 2], transform));
+				//convex.setPoint(0, Normalize3DToProjection(m_EntitySphere.m_Vertices[0], transform));
+				//convex.setPoint(1, Normalize3DToProjection(m_EntitySphere.m_Vertices[i + 1], transform));
+				//convex.setPoint(2, Normalize3DToProjection(m_EntitySphere.m_Vertices[i + 2], transform));
 				//window.draw(convex);
 			}
 

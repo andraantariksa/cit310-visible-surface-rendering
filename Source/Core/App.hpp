@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 
 #include "../System/RenderSystem.hpp"
-#include "../System/TransformSystem.hpp"
 
 class App
 {
@@ -16,6 +15,8 @@ private:
 	entt::registry m_Registry;
 
 	sf::Color m_ClearColor;
+
+	entt::entity m_EntitySphere;
 
 	// GUI value
 	// Should be refactored
@@ -31,7 +32,6 @@ private:
 
 	// System
 	RenderSystem m_SystemRender;
-	TransformSystem m_SystemTransform;
 public:
 	App();
 	~App();

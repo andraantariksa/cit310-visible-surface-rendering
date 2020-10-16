@@ -17,6 +17,7 @@ public:
 	void RotateX(float deg);
 	void RotateY(float deg);
 	void RotateZ(float deg);
+	void Rotate(float deg, glm::vec3& rotationAxis);
 };
 
 #endif

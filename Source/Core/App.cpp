@@ -4,27 +4,26 @@
 #include <glm/glm.hpp>
 
 #include "App.hpp"
-#include "../Component/TransformComponent.hpp"
 #include "../Component/SphereComponent.hpp"
 
 App::App():
 	m_Window(sf::VideoMode(900, 600), "Spheros", sf::Style::Titlebar | sf::Style::Close),
     m_ClearColor(96, 96, 96),
-    m_GUISphereRadius(1.0f),
+    m_GUISphereRadius(200.0f),
     m_GUISphereTranslateX(0.0f),
     m_GUISphereTranslateY(0.0f),
     m_GUISphereTranslateZ(0.0f),
     m_GUISphereLongitude(25),
     m_GUISphereLatitude(25),
     m_GUISphereRotationAxis(0),
-    m_GUISphereRotationDegree(0.0f)
+    m_GUISphereRotationDegree(0.0f),
+    m_EntitySphere(m_Registry.create())
 {
 	m_Window.setFramerateLimit(20);
     ImGui::SFML::Init(m_Window);
 
-    const entt::entity sphere1 = m_Registry.create();
-    m_Registry.emplace<TransformComponent>(sphere1);
-    m_Registry.emplace<SphereComponent>(sphere1, 200.0f, m_GUISphereLongitude, m_GUISphereLatitude);
+    m_Registry.emplace<TransformComponent>(m_EntitySphere);
+    m_Registry.emplace<SphereComponent>(m_EntitySphere, m_GUISphereRadius, m_GUISphereLongitude, m_GUISphereLatitude);
 }
 
 App::~App()
@@ -66,23 +65,30 @@ void App::UpdateInterface()
             if (ImGui::BeginTabItem("Properties"))
             {
                 ImGui::InputFloat("Radius", &m_GUISphereRadius, 0.01f, 1.0f, 2);
-                ImGui::InputInt("Longitude", &m_GUISphereLongitude);
-                ImGui::InputInt("Latitude", &m_GUISphereLatitude);
-                ImGui::Button("Update");
-
                 if (m_GUISphereRadius < 0.0f)
                 {
                     m_GUISphereRadius = 0.0f;
                 }
 
+                ImGui::InputInt("Latitude", &m_GUISphereLatitude);
+                if (m_GUISphereLatitude < 1)
+                {
+                    m_GUISphereLatitude = 0;
+                }
+
+                ImGui::InputInt("Longitude", &m_GUISphereLongitude);
                 if (m_GUISphereLongitude < 1)
                 {
                     m_GUISphereLongitude = 0;
                 }
 
-                if (m_GUISphereLatitude < 1)
+                if (ImGui::Button("Update"))
                 {
-                    m_GUISphereLatitude = 0;
+                    SphereComponent& sphereComponent = m_Registry.get<SphereComponent>(m_EntitySphere);
+                    sphereComponent.m_R = m_GUISphereRadius;
+                    sphereComponent.m_NLatitude = m_GUISphereLatitude;
+                    sphereComponent.m_NLongitude = m_GUISphereLongitude;
+                    sphereComponent.RegenerateVertices();
                 }
 
                 ImGui::EndTabItem();
@@ -95,7 +101,8 @@ void App::UpdateInterface()
                 ImGui::InputFloat("Z", &m_GUISphereTranslateZ, 0.01f, 1.0f, 2);
                 if (ImGui::Button("Translate"))
                 {
-                    m_SystemTransform.Translate(glm::vec3(m_GUISphereTranslateX, m_GUISphereTranslateY, m_GUISphereTranslateZ));
+                    TransformComponent& transformComponent = m_Registry.get<TransformComponent>(m_EntitySphere);
+                    transformComponent.Translate(glm::vec3(m_GUISphereTranslateX, m_GUISphereTranslateY, m_GUISphereTranslateZ));
 
                     // Reset the value
                     m_GUISphereTranslateX = 0.0f;
@@ -115,9 +122,11 @@ void App::UpdateInterface()
                 ImGui::RadioButton("Z", &m_GUISphereRotationAxis, 2);
                 if (ImGui::Button("Rotate"))
                 {
+                    TransformComponent& transformComponent = m_Registry.get<TransformComponent>(m_EntitySphere);
+
                     glm::vec3 rotationAxis(0.0f);
                     rotationAxis[m_GUISphereRotationAxis] = 1.0f;
-                    m_SystemTransform.Rotate(rotationAxis, m_GUISphereRotationDegree);
+                    transformComponent.Rotate(m_GUISphereRotationDegree, rotationAxis);
 
                     // Reset the value
                     m_GUISphereRotationDegree = 0.0f;
@@ -141,7 +150,6 @@ void App::UpdateInterface()
 
 void App::Update()
 {
-    m_SystemTransform.Update(m_Registry);
 }
 
 void App::Render()

@@ -14,8 +14,7 @@
 SphereComponent::SphereComponent(float r, size_t nLongitude, size_t nLatitude) :
 	m_R(r),
 	m_NLongitude(nLongitude),
-	m_NLatitude(nLatitude),
-	m_Vertices(nLongitude * (nLatitude * 2 - 1) + 2)
+	m_NLatitude(nLatitude)
 {
 	RegenerateVertices();
 }
@@ -28,6 +27,8 @@ SphereComponent& SphereComponent::operator=(const SphereComponent&) noexcept
 // Call this function after you modify the radius, longitude, or latitude
 void SphereComponent::RegenerateVertices()
 {
+	m_Vertices.resize(m_NLongitude * (m_NLatitude * 2 - 1) + 2);
+
 	const float longitudeRad = PIMul2 / m_NLongitude;
 	const float latitudeRad = PIDiv2 / m_NLatitude;
 

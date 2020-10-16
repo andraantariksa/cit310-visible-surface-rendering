@@ -6,7 +6,7 @@ set(EXECUTABLE_NAME "Spheros")
 add_executable(${EXECUTABLE_NAME}
 	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
 	"Source/Main.cpp"
-	"Source/Core/App.cpp" "Source/Component/TransformComponent.cpp" "Source/Component/SphereComponent.cpp" "Source/Component/SphereComponent.hpp" "Source/System/RenderSystem.cpp" "Source/System/RenderSystem.hpp"  "Source/System/TransformSystem.cpp")
+	"Source/Core/App.cpp" "Source/Component/TransformComponent.cpp" "Source/Component/SphereComponent.cpp" "Source/Component/SphereComponent.hpp" "Source/System/RenderSystem.cpp" "Source/System/RenderSystem.hpp"  )
 
 if (MSVC_VERSION GREATER_EQUAL "1900")
     include(CheckCXXCompilerFlag)
