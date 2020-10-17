@@ -12,7 +12,7 @@ add_executable(${EXECUTABLE_NAME}
 	"Source/System/RenderSystem.cpp")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -libc++")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	if (MSVC_VERSION GREATER_EQUAL "1900")
 		include(CheckCXXCompilerFlag)
@@ -23,18 +23,31 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	endif()
 endif()
 
-if (WIN32)
+if(WIN32)
 	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-		target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
-			SFML_STATIC)
-		target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-window-s-d.lib"
-			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-graphics-s-d.lib"
-			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-system-s-d.lib"
-			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/freetype.lib"
-			"opengl32.lib"
-			"winmm.lib"
-			"gdi32.lib")
+		if(MSVC)
+			target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+				SFML_STATIC)
+			target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s-d.lib"
+				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s-d.lib"
+				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s-d.lib"
+				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib"
+				"opengl32.lib"
+				"winmm.lib"
+				"gdi32.lib")
+		elseif(MINGW)
+			target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+					SFML_STATIC)
+			target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s-d.a"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s-d.a"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s-d.a"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libfreetype.a"
+					"opengl32.lib"
+					"winmm.lib"
+					"gdi32.lib")
+		endif()
 	endif()
 endif()
 

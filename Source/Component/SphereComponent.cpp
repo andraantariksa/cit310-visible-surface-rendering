@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <glm/glm.hpp>
+#include <cmath>
 
 #include "../Util/Logger.hpp"
 #include <glm/gtx/string_cast.hpp>
@@ -41,7 +42,7 @@ void SphereComponent::RegenerateVertices()
 		{
 			const float latitudeAngle = latitudeRad * latitude;
 			const float longitudeAngle = longitudeRad * longitude;
-			const float cosLatitude = std::cosf(latitudeAngle);
+			const float cosLatitude = cosf(latitudeAngle);
 			m_Vertices[idx++] =
 				glm::vec4(
 					m_R,
@@ -51,13 +52,12 @@ void SphereComponent::RegenerateVertices()
 				)
 				*
 				glm::vec4(
-					cosLatitude * std::sinf(longitudeAngle),
-					std::sinf(latitudeAngle),
-					cosLatitude * std::cosf(longitudeAngle),
+					cosLatitude * sinf(longitudeAngle),
+					sinf(latitudeAngle),
+					cosLatitude * cosf(longitudeAngle),
 					1.0f
 				);
 		}
 	}
 	m_Vertices[idx++] = glm::vec4(0.0f, -m_R, 0.0f, 1.0f);
-	std::cout << idx << '\n' << m_Vertices.size() << '\n';
 }
