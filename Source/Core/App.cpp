@@ -13,8 +13,8 @@ App::App():
     m_GUISphereTranslateX(0.0f),
     m_GUISphereTranslateY(0.0f),
     m_GUISphereTranslateZ(0.0f),
-    m_GUISphereLongitude(25),
-    m_GUISphereLatitude(25),
+    m_GUISphereLongitude(5),
+    m_GUISphereLatitude(5),
     m_GUISphereRotationAxis(0),
     m_GUISphereRotationDegree(0.0f),
     m_GUISphereBackfaceCulling(true),
@@ -132,8 +132,8 @@ void App::UpdateInterface()
                     rotationAxis[m_GUISphereRotationAxis] = 1.0f;
                     transformComponent.Rotate(m_GUISphereRotationDegree, rotationAxis);
 
-                    // Reset the value
-                    m_GUISphereRotationDegree = 0.0f;
+                    // (Don't) Reset the value
+                    //m_GUISphereRotationDegree = 0.0f;
                 }
 
                 ImGui::EndTabItem();

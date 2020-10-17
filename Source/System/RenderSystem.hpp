@@ -16,7 +16,8 @@ public:
 	RenderSystem();
 	~RenderSystem() = default;
 	void Render(entt::registry& registry, sf::RenderWindow& window);
-	inline sf::Vector2f Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform);
+	inline sf::Vector2f Normalize3DToProjectionSFML(const glm::vec4& v, const TransformComponent& transform);
+	inline glm::vec4 Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform);
 };
 
 #endif
