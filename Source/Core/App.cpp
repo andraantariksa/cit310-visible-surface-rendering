@@ -17,6 +17,7 @@ App::App():
     m_GUISphereLatitude(25),
     m_GUISphereRotationAxis(0),
     m_GUISphereRotationDegree(0.0f),
+    m_GUISphereBackfaceCulling(true),
     m_EntitySphere(m_Registry.create())
 {
 	m_Window.setFramerateLimit(20);
@@ -71,16 +72,18 @@ void App::UpdateInterface()
                 }
 
                 ImGui::InputInt("Latitude", &m_GUISphereLatitude);
-                if (m_GUISphereLatitude < 1)
+                if (m_GUISphereLatitude < 3)
                 {
-                    m_GUISphereLatitude = 0;
+                    m_GUISphereLatitude = 3;
                 }
 
                 ImGui::InputInt("Longitude", &m_GUISphereLongitude);
-                if (m_GUISphereLongitude < 1)
+                if (m_GUISphereLongitude < 3)
                 {
-                    m_GUISphereLongitude = 0;
+                    m_GUISphereLongitude = 3;
                 }
+
+                ImGui::Checkbox("Backface Culling", &m_GUISphereBackfaceCulling);
 
                 if (ImGui::Button("Update"))
                 {
@@ -88,6 +91,7 @@ void App::UpdateInterface()
                     sphereComponent.m_R = m_GUISphereRadius;
                     sphereComponent.m_NLatitude = m_GUISphereLatitude;
                     sphereComponent.m_NLongitude = m_GUISphereLongitude;
+                    sphereComponent.m_IsCullBackface = m_GUISphereBackfaceCulling;
                     sphereComponent.RegenerateVertices();
                 }
 
@@ -131,13 +135,6 @@ void App::UpdateInterface()
                     // Reset the value
                     m_GUISphereRotationDegree = 0.0f;
                 }
-
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Misc"))
-            {
-                ImGui::Checkbox("Backface Culling", &m_GUISphereBackfaceCulling);
 
                 ImGui::EndTabItem();
             }

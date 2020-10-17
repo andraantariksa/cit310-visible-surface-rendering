@@ -13,6 +13,7 @@ public:
 	size_t m_NLatitude;
 
 	std::vector<glm::vec4> m_Vertices;
+	bool m_IsCullBackface;
 
 	SphereComponent(float r, size_t longitude, size_t latitude);
 	~SphereComponent() = default;

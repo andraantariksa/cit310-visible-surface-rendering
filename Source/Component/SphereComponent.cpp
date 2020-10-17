@@ -14,7 +14,8 @@
 SphereComponent::SphereComponent(float r, size_t nLongitude, size_t nLatitude) :
 	m_R(r),
 	m_NLongitude(nLongitude),
-	m_NLatitude(nLatitude)
+	m_NLatitude(nLatitude),
+	m_IsCullBackface(true)
 {
 	RegenerateVertices();
 }
@@ -58,4 +59,5 @@ void SphereComponent::RegenerateVertices()
 		}
 	}
 	m_Vertices[idx++] = glm::vec4(0.0f, -m_R, 0.0f, 1.0f);
+	std::cout << idx << '\n' << m_Vertices.size() << '\n';
 }

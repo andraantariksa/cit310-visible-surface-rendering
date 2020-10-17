@@ -74,7 +74,7 @@ add_library("ImGui" STATIC
 
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-	"ImGui-SFML"
+#	"ImGui-SFML"
 	"ImGui")
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE
