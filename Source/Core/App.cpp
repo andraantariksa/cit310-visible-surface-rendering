@@ -109,9 +109,9 @@ void App::UpdateInterface()
                     transformComponent.Translate(glm::vec3(m_GUISphereTranslateX, m_GUISphereTranslateY, m_GUISphereTranslateZ));
 
                     // Reset the value
-                    m_GUISphereTranslateX = 0.0f;
+                    /*m_GUISphereTranslateX = 0.0f;
                     m_GUISphereTranslateY = 0.0f;
-                    m_GUISphereTranslateZ = 0.0f;
+                    m_GUISphereTranslateZ = 0.0f;*/
                 }
 
                 ImGui::EndTabItem();

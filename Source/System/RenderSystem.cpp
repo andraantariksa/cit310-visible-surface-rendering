@@ -20,7 +20,19 @@ RenderSystem::RenderSystem() :
 	const float scaleY = 1.0f;
 	const float translateX = 300.0f;
 	const float translateY = 300.0f;
+	const float zc = 10.0f;
 
+	// TODO
+	// Perspective projection
+	// Vt
+	m_MatTransform *= glm::mat4(
+		glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
+		glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
+		glm::vec4(0.0f, 0.0f, 0.0f, -1 / zc),
+		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+	);
+
+	// St
 	m_MatTransform *= glm::mat4(
 		glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
 		glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
@@ -62,18 +74,18 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				// Bottom part
 				for (size_t i = 0; i < sphere.m_NLongitude - 1; ++i)
 				{
-					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[0], transform);
-					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[i + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[i + 1], transform);
-					if (glm::cross(v1, v2).z > 0.0f)
+					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[i + 2], transform);
+					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[0], transform) - Normalize3DToProjection(sphere.m_Vertices[i + 1], transform);
+					if (glm::cross(v1, v2).z < 0.0f)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform))
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 
@@ -86,18 +98,18 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				}
 
 
-				const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude], transform) - Normalize3DToProjection(sphere.m_Vertices[0], transform);
-				const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude], transform);
-				if (glm::cross(v1, v2).z > 0.0f)
+				const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude], transform) - Normalize3DToProjection(sphere.m_Vertices[1], transform);
+				const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[0], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude], transform);
+				if (glm::cross(v1, v2).z < 0.0f)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform))
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
@@ -107,68 +119,68 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					for (size_t j = 0; j < sphere.m_NLongitude - 1; ++j)
 					{
-						const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform);
-						const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform);
-						if (glm::cross(v1, v2).z > 0.0f)
+						const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform);
+						const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform);
+						if (glm::cross(v1, v2).z < 0.0f)
 						{
 							sf::Vertex line[] =
 							{
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 							};
 							window.draw(line, 6, sf::Lines);
 						}
 
-						const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform);
-						const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform);
-						if (glm::cross(v3, v4).z > 0.0f)
+						const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform);
+						const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform);
+						if (glm::cross(v3, v4).z < 0.0f)
 						{
 							sf::Vertex line[] =
 							{
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform))
 							};
 							window.draw(line, 6, sf::Lines);
 						}
 					}
 
 					const size_t j = sphere.m_NLongitude - 1;
-					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform);
-					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform);
-					if (glm::cross(v1, v2).z > 0.0f)
+					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform);
+					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform);
+					if (glm::cross(v1, v2).z < 0.0f)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform))
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
 
-					const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform);
-					const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform);
-					if (glm::cross(v3, v4).z > 0.0f)
+					const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform);
+					const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform);
+					if (glm::cross(v3, v4).z < 0.0f)
 					{
 						sf::Vertex line[] =
 						{
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
@@ -178,35 +190,35 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				const size_t topMostVertex = sphere.m_NLongitude * (sphere.m_NLatitude * 2 - 1) + 2 - 1;
 				for (size_t i = 0; i < sphere.m_NLongitude - 1; ++i)
 				{
-					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform);
-					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform);
-					if (glm::cross(v1, v2).z > 0.0f)
+					const glm::vec3 v1 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform);
+					const glm::vec3 v2 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform);
+					if (glm::cross(v1, v2).z < 0.0f)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform))
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
 				}
 
-				const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform);
-				const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - 1], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform);
-				if (glm::cross(v3, v4).z > 0.0f)
+				const glm::vec3 v3 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - 1], transform);
+				const glm::vec3 v4 = Normalize3DToProjection(sphere.m_Vertices[topMostVertex], transform) - Normalize3DToProjection(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform);
+				if (glm::cross(v3, v4).z < 0.0f)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform))
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - 1], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
@@ -218,12 +230,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform))
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[i + 2], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 
@@ -236,12 +248,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 
 				sf::Vertex line[] =
 				{
+					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
+					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
+					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
 					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
-					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
-					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform)),
-					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform))
+					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[0], transform)),
+					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[1], transform))
 				};
 				window.draw(line, 6, sf::Lines);
 
@@ -252,19 +264,19 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					{
 						sf::Vertex line[] =
 						{
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+							sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform))
 						};
 						window.draw(line, 12, sf::Lines);
 					}
@@ -272,19 +284,19 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					const size_t j = sphere.m_NLongitude - 1;
 					sf::Vertex line[] =
 					{
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 					
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform))
 					};
 					window.draw(line, 12, sf::Lines);
 				}
@@ -295,12 +307,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
-						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform))
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform)),
+						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
@@ -315,14 +327,32 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[topMostVertex], transform))
 				};
 				window.draw(line, 6, sf::Lines);
+
+
+				/*auto circle = sf::CircleShape(2.0f);
+				circle.setFillColor(sf::Color::Red);
+				for (glm::vec4& vertex : sphere.m_Vertices)
+				{
+					auto s = Normalize3DToProjectionSFML(vertex, transform);
+					circle.setPosition(s);
+					window.draw(circle);
+				}*/
 			}
 		});
 }
 
+bool once = true;
+
 inline sf::Vector2f RenderSystem::Normalize3DToProjectionSFML(const glm::vec4& v, const TransformComponent& transform)
 {
 	const glm::vec4& result = Normalize3DToProjection(v, transform);
-	return sf::Vector2f(result.x, result.y);
+	if (once)
+	{
+		once = false;
+
+		std::cout << result.x << " " << result.y << " " << result.z << " " << result.w << '\n';
+	}
+	return sf::Vector2f(result.x / result.w, result.y / result.w);
 }
 
 inline glm::vec4 RenderSystem::Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform)
