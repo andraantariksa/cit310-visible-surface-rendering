@@ -6,14 +6,14 @@
 
 #define PI 3.14159265358979323846f
 
-static inline float deg2rad(float deg)
-{
-	return deg * PI / 180.0f;
-}
-
 TransformComponent::TransformComponent() noexcept:
 	m_MatTransform(1.0f)
 {
+}
+
+static inline float deg2rad(float deg)
+{
+	return deg * PI / 180.0f;
 }
 
 void TransformComponent::ResetMatrix() {

@@ -35,7 +35,7 @@ void SphereComponent::RegenerateVertices()
 
 	size_t idx = 0;
 	m_Vertices[idx++] = glm::vec4(0.0f, m_R, 0.0f, 1.0f);
-	for (int latitude = m_NLatitude - 1; latitude >= -((int)m_NLatitude - 1); --latitude)
+	for (int latitude = (int)m_NLatitude - 1; latitude >= -((int)m_NLatitude - 1); --latitude)
 	{
 		for (int longitude = 0; longitude < m_NLongitude; ++longitude)
 		{

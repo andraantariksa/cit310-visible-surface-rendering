@@ -17,8 +17,8 @@ public:
 
 	SphereComponent(float r, size_t longitude, size_t latitude);
 	~SphereComponent() = default;
-	SphereComponent& operator=(const SphereComponent&) noexcept;
 
+	SphereComponent& operator=(const SphereComponent&) noexcept;
 	void RegenerateVertices();
 };
 
