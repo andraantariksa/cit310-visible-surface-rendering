@@ -13,6 +13,7 @@ public:
 	~TransformComponent() = default;
 	TransformComponent& operator=(const TransformComponent&) noexcept;
 
+	void ResetMatrix();
 	void Translate(const glm::vec3& translation);
 	void RotateX(float deg);
 	void RotateY(float deg);

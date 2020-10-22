@@ -18,6 +18,7 @@ App::App():
     m_GUISphereRotationAxis(0),
     m_GUISphereRotationDegree(0.0f),
     m_GUISphereBackfaceCulling(true),
+    m_GUIVanishingPointZ(-500.0f),
     m_EntitySphere(m_Registry.create())
 {
 	m_Window.setFramerateLimit(20);
@@ -65,7 +66,7 @@ void App::UpdateInterface()
         {
             if (ImGui::BeginTabItem("Properties"))
             {
-                ImGui::InputFloat("Radius", &m_GUISphereRadius, 0.01f, 1.0f, 2);
+                ImGui::InputFloat("Radius", &m_GUISphereRadius, 0.01f, 1.0f);
                 if (m_GUISphereRadius < 0.0f)
                 {
                     m_GUISphereRadius = 0.0f;
@@ -83,6 +84,8 @@ void App::UpdateInterface()
                     m_GUISphereLongitude = 3;
                 }
 
+                // need to check if not zero somehow
+                ImGui::InputFloat("Vanishing Point Z", &m_GUIVanishingPointZ, 0.01f, 1.0f);
                 ImGui::Checkbox("Backface Culling", &m_GUISphereBackfaceCulling);
 
                 if (ImGui::Button("Update"))
@@ -93,6 +96,15 @@ void App::UpdateInterface()
                     sphereComponent.m_NLongitude = m_GUISphereLongitude;
                     sphereComponent.m_IsCullBackface = m_GUISphereBackfaceCulling;
                     sphereComponent.RegenerateVertices();
+
+                    // need optimized
+                    m_SystemRender.ResetMatrix(m_GUIVanishingPointZ);
+                }
+                ImGui::PushItemWidth(20);
+                if (ImGui::Button("Reset"))
+                {
+                    m_GUIVanishingPointZ = -500.0f;
+                    m_SystemRender.ResetTransform(m_Registry);
                 }
 
                 ImGui::EndTabItem();
@@ -100,9 +112,9 @@ void App::UpdateInterface()
 
             if (ImGui::BeginTabItem("Translation"))
             {
-                ImGui::InputFloat("X", &m_GUISphereTranslateX, 0.01f, 1.0f, 2);
-                ImGui::InputFloat("Y", &m_GUISphereTranslateY, 0.01f, 1.0f, 2);
-                ImGui::InputFloat("Z", &m_GUISphereTranslateZ, 0.01f, 1.0f, 2);
+                ImGui::InputFloat("X", &m_GUISphereTranslateX, 0.01f, 1.0f);
+                ImGui::InputFloat("Y", &m_GUISphereTranslateY, 0.01f, 1.0f);
+                ImGui::InputFloat("Z", &m_GUISphereTranslateZ, 0.01f, 1.0f);
                 if (ImGui::Button("Translate"))
                 {
                     TransformComponent& transformComponent = m_Registry.get<TransformComponent>(m_EntitySphere);
@@ -120,7 +132,7 @@ void App::UpdateInterface()
 
             if (ImGui::BeginTabItem("Rotation"))
             {
-                ImGui::InputFloat("Degree", &m_GUISphereRotationDegree, 0.01f, 1.0f, 2);
+                ImGui::InputFloat("Degree", &m_GUISphereRotationDegree, 0.01f, 10.0f);
                 ImGui::RadioButton("X", &m_GUISphereRotationAxis, 0);
                 ImGui::RadioButton("Y", &m_GUISphereRotationAxis, 1);
                 ImGui::RadioButton("Z", &m_GUISphereRotationAxis, 2);

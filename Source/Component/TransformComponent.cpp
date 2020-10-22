@@ -11,6 +11,11 @@ TransformComponent::TransformComponent() noexcept:
 {
 }
 
+void TransformComponent::ResetMatrix() {
+    m_MatTransform = glm::mat4(1.0f);
+
+}
+
 TransformComponent::TransformComponent(const glm::vec3& startingPosition) noexcept :
 	m_MatTransform(1.0f)
 {
