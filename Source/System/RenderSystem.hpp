@@ -17,6 +17,12 @@ public:
 
 	RenderSystem();
 	~RenderSystem() = default;
+
+	// need refactor
+	void ResetTransform(entt::registry& registry);
+	// default vanishing point
+	void ResetMatrix(float vanishing_point_z = -500.0f);
+
 	void Render(entt::registry& registry, sf::RenderWindow& window);
 	inline sf::Vector2f Normalize3DToProjectionSFML(const glm::vec4& v, const TransformComponent& transform);
 	inline glm::vec4 Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform);

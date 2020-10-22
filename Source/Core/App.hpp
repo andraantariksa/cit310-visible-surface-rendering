@@ -29,6 +29,7 @@ private:
 	int m_GUISphereRotationAxis;
 	float m_GUISphereRotationDegree;
 	bool m_GUISphereBackfaceCulling;
+	float m_GUIVanishingPointZ;
 
 	// System
 	RenderSystem m_SystemRender;

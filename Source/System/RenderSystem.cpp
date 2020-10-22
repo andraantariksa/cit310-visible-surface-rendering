@@ -17,29 +17,43 @@
 RenderSystem::RenderSystem() :
 	m_MatTransform(1.0f)
 {
-	const float scaleX = 1.0f;
-	const float scaleY = 1.0f;
-	const float translateX = 300.0f;
-	const float translateY = 300.0f;
-	const float zc = 10.0f;
+	ResetMatrix();
+}
 
-	// TODO
-	// Perspective projection
-	// Vt
-	m_MatTransform *= glm::mat4(
-		glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 0.0f, -1 / zc),
-		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-	);
+// need refactor
+void RenderSystem::ResetMatrix(float vanishing_point_z)
+{
+    const float scaleX = 1.0f;
+    const float scaleY = 1.0f;
+    const float translateX = 300.0f;
+    const float translateY = 300.0f;
+    const float zc = -(vanishing_point_z);
 
-	// St
-	m_MatTransform *= glm::mat4(
-		glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 0.0f, 0.0f),
-		glm::vec4(translateX, translateY, 0.0f, 1.0f)
-	);
+    // Perspective Projection
+    // St
+    m_MatTransform = glm::mat4(
+            glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
+            glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
+            glm::vec4(0.0f, 0.0f, 0.0f, 0.0f),
+            glm::vec4(translateX, translateY, 0.0f, 1.0f)
+    );
+
+    // Vt
+    m_MatTransform *= glm::mat4(
+            glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
+            glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
+            glm::vec4(0.0f, 0.0f, 0.0f, -1 / zc),
+            glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+}
+
+void RenderSystem::ResetTransform(entt::registry& registry)
+{
+    ResetMatrix();
+    registry.view<SphereComponent, TransformComponent>().each([&](auto entity, SphereComponent& sphere, TransformComponent& transform)
+      {
+            transform.ResetMatrix();
+      });
 }
 
 void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
@@ -291,7 +305,7 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-					
+
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 						sf::Vertex(Normalize3DToProjectionSFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
