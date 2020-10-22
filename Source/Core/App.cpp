@@ -1,10 +1,12 @@
+#include "App.hpp"
+
 #include <SFML/Graphics.hpp>
 #include <imgui-SFML.h>
 #include <imgui.h>
 #include <glm/glm.hpp>
 
-#include "App.hpp"
 #include "../Component/SphereComponent.hpp"
+#include "../Util/Logger.hpp"
 
 App::App():
 	m_Window(sf::VideoMode(900, 600), "Spheros", sf::Style::Titlebar | sf::Style::Close),
@@ -20,7 +22,7 @@ App::App():
     m_GUISphereBackfaceCulling(true),
     m_EntitySphere(m_Registry.create())
 {
-	m_Window.setFramerateLimit(20);
+	m_Window.setFramerateLimit(15);
     ImGui::SFML::Init(m_Window);
 
     m_Registry.emplace<TransformComponent>(m_EntitySphere);

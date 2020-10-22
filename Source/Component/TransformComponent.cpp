@@ -1,10 +1,15 @@
 #include "TransformComponent.hpp"
 
 #include <glm/gtx/transform.hpp>
-#include <glm\gtx\string_cast.hpp>
-#include <iostream>
+
+#include "../Util/Logger.hpp"
 
 #define PI 3.14159265358979323846f
+
+static inline float deg2rad(float deg)
+{
+	return deg * PI / 180.0f;
+}
 
 TransformComponent::TransformComponent() noexcept:
 	m_MatTransform(1.0f)
@@ -29,20 +34,20 @@ void TransformComponent::Translate(const glm::vec3& translation)
 
 void TransformComponent::RotateX(float deg)
 {
-	m_MatTransform *= glm::rotate(deg * PI / 180.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
 void TransformComponent::RotateY(float deg)
 {
-	m_MatTransform *= glm::rotate(deg * PI / 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void TransformComponent::RotateZ(float deg)
 {
-	m_MatTransform *= glm::rotate(deg * PI / 180.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
 void TransformComponent::Rotate(float deg, glm::vec3& rotationAxis)
 {
-	m_MatTransform *= glm::rotate(deg * PI / 180.0f, rotationAxis);
+	m_MatTransform *= glm::rotate(deg2rad(deg), rotationAxis);
 }

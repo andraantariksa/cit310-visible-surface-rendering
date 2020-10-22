@@ -6,7 +6,6 @@
 #include <cmath>
 
 #include "../Util/Logger.hpp"
-#include <glm/gtx/string_cast.hpp>
 
 #define PIDiv2 1.5707963267948966192313216916397f
 #define PI 3.14159265358979323846f

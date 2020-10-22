@@ -9,7 +9,8 @@ add_executable(${EXECUTABLE_NAME}
 	"Source/Core/App.cpp"
 	"Source/Component/TransformComponent.cpp"
 	"Source/Component/SphereComponent.cpp"
-	"Source/System/RenderSystem.cpp")
+	"Source/System/RenderSystem.cpp"
+	"Source/Core/Camera.cpp")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -54,7 +55,6 @@ endif()
 # ImGui
 add_library("ImGui" STATIC
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/imgui.cpp"
-	"${CMAKE_SOURCE_DIR}/Lib/imgui/imgui_demo.cpp"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/imgui_draw.cpp"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/imgui_widgets.cpp"
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/cpp/imgui_stdlib.cpp"

@@ -6,12 +6,14 @@
 #include <glm/glm.hpp>
 
 #include "../Component/TransformComponent.hpp"
+#include "../Core/Camera.hpp"
 
 class RenderSystem
 {
 public:
 	// Viewer Transform * Screen Transform
 	glm::mat4 m_MatTransform;
+	Camera m_Camera;
 
 	RenderSystem();
 	~RenderSystem() = default;
