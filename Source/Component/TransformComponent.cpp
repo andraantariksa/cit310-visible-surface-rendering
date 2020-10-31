@@ -7,7 +7,9 @@
 #define PI 3.14159265358979323846f
 
 TransformComponent::TransformComponent() noexcept:
-	m_MatTransform(1.0f)
+	m_MatTransform(1.0f),
+	m_MatTranslation(1.0f),
+	m_MatRotation(1.0f)
 {
 }
 
@@ -34,25 +36,35 @@ TransformComponent& TransformComponent::operator=(const TransformComponent&) noe
 
 void TransformComponent::Translate(const glm::vec3& translation)
 {
-	m_MatTransform *= glm::translate(glm::mat4(1.0f), translation);
+	m_MatTranslation *= glm::translate(glm::mat4(1.0f), translation);
+	UpdateMatTransform();
 }
 
 void TransformComponent::RotateX(float deg)
 {
-	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(1.0f, 0.0f, 0.0f));
+	m_MatRotation *= glm::rotate(deg2rad(deg), glm::vec3(1.0f, 0.0f, 0.0f));
+	UpdateMatTransform();
 }
 
 void TransformComponent::RotateY(float deg)
 {
-	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 1.0f, 0.0f));
+	m_MatRotation *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 1.0f, 0.0f));
+	UpdateMatTransform();
 }
 
 void TransformComponent::RotateZ(float deg)
 {
-	m_MatTransform *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 0.0f, 1.0f));
+	m_MatRotation *= glm::rotate(deg2rad(deg), glm::vec3(0.0f, 0.0f, 1.0f));
+	UpdateMatTransform();
 }
 
 void TransformComponent::Rotate(float deg, glm::vec3& rotationAxis)
 {
-	m_MatTransform *= glm::rotate(deg2rad(deg), rotationAxis);
+	m_MatRotation *= glm::rotate(deg2rad(deg), rotationAxis);
+	UpdateMatTransform();
+}
+
+void TransformComponent::UpdateMatTransform()
+{
+	m_MatTransform = m_MatTranslation * m_MatRotation;
 }
