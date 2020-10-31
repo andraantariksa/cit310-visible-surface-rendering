@@ -42,10 +42,6 @@ void SphereComponent::RegenerateVertices()
 			const float latitudeAngle = latitudeRad * latitude;
 			const float longitudeAngle = longitudeRad * longitude;
 			const float cosLatitude = cosf(latitudeAngle);
-			const float x = cosLatitude * sinf(longitudeAngle);
-			const float y = sinf(latitudeAngle);
-			const flaot z = cosLatitude * cosf(longitudeAngle);
-
 			m_Vertices[idx++] =
 				glm::vec4(
 					m_R,
@@ -55,9 +51,9 @@ void SphereComponent::RegenerateVertices()
 				)
 				*
 				glm::vec4(
-					x,
-					y,
-					z,
+					cosLatitude * sinf(longitudeAngle),
+					sinf(latitudeAngle),
+					cosLatitude * cosf(longitudeAngle),
 					1.0f
 				);
 		}
