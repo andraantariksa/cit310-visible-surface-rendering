@@ -5,11 +5,12 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 
+#include "../Macro.hpp"
 #include "../Component/SphereComponent.hpp"
 #include "../Util/Logger.hpp"
 
 App::App():
-	m_Window(sf::VideoMode(900, 600), "Spheros", sf::Style::Titlebar | sf::Style::Close),
+	m_Window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), APP_NAME, sf::Style::Titlebar | sf::Style::Close),
     m_ClearColor(96, 96, 96),
     m_GUISphereRadius(200.0f),
     m_GUISphereTranslateX(0.0f),
@@ -21,7 +22,8 @@ App::App():
     m_GUISphereRotationDegree(0.0f),
     m_GUISphereBackfaceCulling(true),
     m_GUIVanishingPointZ(-500.0f),
-    m_EntitySphere(m_Registry.create())
+    m_EntitySphere(m_Registry.create()),
+    m_GUISurfaceNormalValid(false)
 {
 	m_Window.setFramerateLimit(15);
     ImGui::SFML::Init(m_Window);
@@ -40,12 +42,41 @@ void App::Run()
 	while (m_Window.isOpen())
 	{
         sf::Event event;
+        bool rightClick = false;
         while (m_Window.pollEvent(event))
         {
             ImGui::SFML::ProcessEvent(event);
 
             if (event.type == sf::Event::Closed)
+            {
                 m_Window.close();
+            }
+            else if (event.type == sf::Event::MouseButtonPressed &&
+                event.mouseButton.button == sf::Mouse::Right)
+            {
+                rightClick = true;
+            }
+        }
+
+        if (rightClick)
+        {
+            sf::Vector2i mousePosition = sf::Mouse::getPosition(m_Window);
+            std::optional<glm::vec3> normalClickedSurface = m_SystemRender.GetSphereSurfaceNormal(
+                m_Registry,
+                glm::vec2((float)mousePosition.x, (float)mousePosition.y)
+            );
+            if (normalClickedSurface.has_value())
+            {
+                glm::vec3 normal_surface = glm::normalize(normalClickedSurface.value());
+                m_GUISurfaceNormal[0] = normal_surface.x;
+                m_GUISurfaceNormal[1] = normal_surface.y;
+                m_GUISurfaceNormal[2] = normal_surface.z;
+                m_GUISurfaceNormalValid = true;
+            }
+            else
+            {
+                m_GUISurfaceNormalValid = false;
+            }
         }
 
         UpdateInterface();
@@ -148,6 +179,21 @@ void App::UpdateInterface()
 
                     // (Don't) Reset the value
                     //m_GUISphereRotationDegree = 0.0f;
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Misc"))
+            {
+                ImGui::TextWrapped("Press right on the sphere surface to get the surface normal");
+                if (m_GUISurfaceNormalValid)
+                {
+                    ImGui::InputFloat3("Normal", m_GUISurfaceNormal, 3, ImGuiInputTextFlags_ReadOnly);
+                }
+                else
+                {
+                    ImGui::TextWrapped("Invalid surface");
                 }
 
                 ImGui::EndTabItem();

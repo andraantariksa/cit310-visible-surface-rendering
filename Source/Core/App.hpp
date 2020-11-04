@@ -30,6 +30,8 @@ private:
 	float m_GUISphereRotationDegree;
 	bool m_GUISphereBackfaceCulling;
 	float m_GUIVanishingPointZ;
+	float m_GUISurfaceNormal[3];
+	bool m_GUISurfaceNormalValid;
 
 	// System
 	RenderSystem m_SystemRender;

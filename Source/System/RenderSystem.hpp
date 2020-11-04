@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
+#include <optional>
 
 #include "../Component/TransformComponent.hpp"
 #include "../Core/Camera.hpp"
@@ -25,8 +26,11 @@ public:
 
 	void Render(entt::registry& registry, sf::RenderWindow& window);
 	sf::Vector2f Normalize3DToProjectionSFML(const glm::vec4& v, const TransformComponent& transform);
+	glm::vec2 RenderSystem::Normalize3DToProjectionGLM(const glm::vec4& v, const TransformComponent& transform);
 	glm::vec4 Normalize3DToProjection3D(const glm::vec4& v, const TransformComponent& transform);
 	glm::vec4 Normalize3DToProjection(const glm::vec4& v, const TransformComponent& transform);
+
+	std::optional<glm::vec3> GetSphereSurfaceNormal(entt::registry& registry, glm::vec2& screen_coord);
 };
 
 #endif

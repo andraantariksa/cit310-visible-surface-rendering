@@ -20,7 +20,8 @@ static inline float deg2rad(float deg)
 
 void TransformComponent::ResetMatrix() {
     m_MatTransform = glm::mat4(1.0f);
-
+	m_MatRotation = glm::mat4(1.0f);
+	m_MatTranslation = glm::mat4(1.0f);
 }
 
 TransformComponent::TransformComponent(const glm::vec3& startingPosition) noexcept :
