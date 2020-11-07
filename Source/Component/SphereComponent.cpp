@@ -34,8 +34,8 @@ void SphereComponent::RegenerateVertices()
 	const float latitudeRad = PIDiv2 / m_NLatitude;
 
 	size_t idx = 0;
-	m_Vertices[idx++] = glm::vec4(0.0f, m_R, 0.0f, 1.0f);
-	for (int latitude = (int)m_NLatitude - 1; latitude >= -((int)m_NLatitude - 1); --latitude)
+	m_Vertices[idx++] = glm::vec4(0.0f, -m_R, 0.0f, 1.0f);
+	for (int latitude = -((int)m_NLatitude - 1); latitude <= (int)m_NLatitude - 1; ++latitude)
 	{
 		for (int longitude = 0; longitude < m_NLongitude; ++longitude)
 		{
@@ -58,5 +58,5 @@ void SphereComponent::RegenerateVertices()
 				);
 		}
 	}
-	m_Vertices[idx++] = glm::vec4(0.0f, -m_R, 0.0f, 1.0f);
+	m_Vertices[idx++] = glm::vec4(0.0f, m_R, 0.0f, 1.0f);
 }

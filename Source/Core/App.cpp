@@ -186,7 +186,7 @@ void App::UpdateInterface()
 
             if (ImGui::BeginTabItem("Misc"))
             {
-                ImGui::TextWrapped("Press right on the sphere surface to get the surface normal");
+                ImGui::TextWrapped("Press right click on the sphere surface to get the surface normal");
                 if (m_GUISurfaceNormalValid)
                 {
                     ImGui::InputFloat3("Normal", m_GUISurfaceNormal, 3, ImGuiInputTextFlags_ReadOnly);
