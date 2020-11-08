@@ -40,8 +40,6 @@ App::~App()
 
 void App::Run()
 {
-    ImGui::SetNextWindowSize(ImVec2(500.0f, 250.0f));
-
 	while (m_Window.isOpen())
 	{
         sf::Event event;
@@ -96,7 +94,8 @@ void App::UpdateInterface()
 {
     ImGui::SFML::Update(m_Window, m_DeltaClock.getElapsedTime());
 
-    if(ImGui::Begin("Sphere Editor"))
+    ImGui::SetNextWindowSize(ImVec2(430.0f, 220.0f));
+    if(ImGui::Begin("Sphere Editor", (bool*)0, ImGuiWindowFlags_NoResize))
     {
         if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
         {
