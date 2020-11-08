@@ -3,14 +3,28 @@
 project ("Spheros")
 
 set(EXECUTABLE_NAME "Spheros")
-add_executable(${EXECUTABLE_NAME}
-	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
-	"Source/Main.cpp"
-	"Source/Core/App.cpp"
-	"Source/Component/TransformComponent.cpp"
-	"Source/Component/SphereComponent.cpp"
-	"Source/System/RenderSystem.cpp"
-	"Source/Core/Camera.cpp")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_executable(${EXECUTABLE_NAME}
+		"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
+		"Source/Main.cpp"
+		"Source/Core/App.cpp"
+		"Source/Component/TransformComponent.cpp"
+		"Source/Component/SphereComponent.cpp"
+		"Source/System/RenderSystem.cpp"
+		"Source/Core/Camera.cpp")
+	target_compile_definitions(${EXECUTABLE_NAME} PRIVATE _DEBUG_BUILD)
+else()
+	add_executable(${EXECUTABLE_NAME}
+		WIN32
+		"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
+		"Source/Main.cpp"
+		"Source/Core/App.cpp"
+		"Source/Component/TransformComponent.cpp"
+		"Source/Component/SphereComponent.cpp"
+		"Source/System/RenderSystem.cpp"
+		"Source/Core/Camera.cpp")
+endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -29,25 +43,47 @@ if(WIN32)
 		if(MSVC)
 			target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
 				SFML_STATIC)
-			target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s-d.lib"
-				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s-d.lib"
-				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s-d.lib"
-				"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib"
-				"opengl32.lib"
-				"winmm.lib"
-				"gdi32.lib")
+			if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+				target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s-d.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s-d.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s-d.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib"
+					"opengl32.lib"
+					"winmm.lib"
+					"gdi32.lib")
+			else()
+				target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s.lib"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib"
+					"opengl32.lib"
+					"winmm.lib"
+					"gdi32.lib")
+			endif()
 		elseif(MINGW)
 			target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
 					SFML_STATIC)
-			target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s-d.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s-d.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s-d.a"
+			if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+				target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+						"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s-d.a"
+						"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s-d.a"
+						"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s-d.a"
+						"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libfreetype.a"
+						"opengl32.lib"
+						"winmm.lib"
+						"gdi32.lib")
+			else()
+				target_link_libraries(${EXECUTABLE_NAME} PRIVATE
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s.a"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s.a"
+					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s.a"
 					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libfreetype.a"
 					"opengl32.lib"
 					"winmm.lib"
 					"gdi32.lib")
+			endif()
 		endif()
 	endif()
 endif()

@@ -100,12 +100,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform))
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 
@@ -124,12 +124,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform))
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
@@ -145,12 +145,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 						{
 							sf::Vertex line[] =
 							{
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
 								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
 							};
 							window.draw(line, 6, sf::Lines);
 						}
@@ -161,12 +161,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 						{
 							sf::Vertex line[] =
 							{
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
 								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform))
 							};
 							window.draw(line, 6, sf::Lines);
 						}
@@ -179,12 +179,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform))
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
@@ -195,12 +195,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					{
 						sf::Vertex line[] =
 						{
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform))
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
@@ -216,12 +216,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					{
 						sf::Vertex line[] =
 						{
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform))
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform))
 						};
 						window.draw(line, 6, sf::Lines);
 					}
@@ -233,12 +233,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform))
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
@@ -250,12 +250,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform))
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 2], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[i + 1], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 
@@ -268,12 +268,12 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 
 				sf::Vertex line[] =
 				{
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform)),
 					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform))
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[0], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[1], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude], transform))
 				};
 				window.draw(line, 6, sf::Lines);
 
@@ -285,18 +285,17 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 						sf::Vertex line[] =
 						{
 							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform))
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform))
 						};
 						window.draw(line, 12, sf::Lines);
 					}
@@ -304,19 +303,18 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 					const size_t j = sphere.m_NLongitude - 1;
 					sf::Vertex line[] =
 					{
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform))
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 2], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * i + 1], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + j + 1], transform)),
+								sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[sphere.m_NLongitude * (i - 1) + 1], transform))
 					};
 					window.draw(line, 12, sf::Lines);
 				}
@@ -327,36 +325,26 @@ void RenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 				{
 					sf::Vertex line[] =
 					{
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
 						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
-						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform))
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i], transform)),
+							sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + i + 1], transform))
 					};
 					window.draw(line, 6, sf::Lines);
 				}
 
 				sf::Vertex line2[] =
 				{
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude + 1], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
-					sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform))
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - 1], transform)),
+						sf::Vertex(TransformToSCSVec2SFML(sphere.m_Vertices[topMostVertex - sphere.m_NLongitude], transform))
 				};
 				window.draw(line, 6, sf::Lines);
-
-
-				/*auto circle = sf::CircleShape(2.0f);
-				circle.setFillColor(sf::Color::Red);
-				for (glm::vec4& vertex : sphere.m_Vertices)
-				{
-					auto s = Normalize3DToProjectionSFML(vertex, transform);
-					circle.setPosition(s);
-					window.draw(circle);
-				}*/
 			}
 		});
 }

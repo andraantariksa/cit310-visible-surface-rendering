@@ -13,7 +13,6 @@ class RenderSystem
 {
 public:
 	// Viewer Transform * Screen Transform
-	glm::mat4 m_MatWCSToWCS2;
 	glm::mat4 m_MatTransform;
 	glm::mat4 m_MatWCSToVCS;
 	glm::mat4 m_MatVCSToSCS;

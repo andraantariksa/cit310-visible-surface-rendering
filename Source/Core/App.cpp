@@ -27,6 +27,7 @@ App::App():
 {
 	m_Window.setFramerateLimit(15);
     ImGui::SFML::Init(m_Window);
+    ImGui::GetIO().IniFilename = nullptr;
 
     m_Registry.emplace<TransformComponent>(m_EntitySphere);
     m_Registry.emplace<SphereComponent>(m_EntitySphere, m_GUISphereRadius, m_GUISphereLongitude, m_GUISphereLatitude);
@@ -39,6 +40,8 @@ App::~App()
 
 void App::Run()
 {
+    ImGui::SetNextWindowSize(ImVec2(500.0f, 250.0f));
+
 	while (m_Window.isOpen())
 	{
         sf::Event event;
