@@ -13,25 +13,8 @@ private:
 	sf::RenderWindow m_Window;
 	sf::Clock m_DeltaClock;
 	entt::registry m_Registry;
-
 	sf::Color m_ClearColor;
-
-	entt::entity m_EntitySphere;
-
-	// GUI value
-	// Should be refactored
-	float m_GUISphereRadius;
-	int m_GUISphereLongitude;
-	int m_GUISphereLatitude;
-	float m_GUISphereTranslateX;
-	float m_GUISphereTranslateY;
-	float m_GUISphereTranslateZ;
-	int m_GUISphereRotationAxis;
-	float m_GUISphereRotationDegree;
-	bool m_GUISphereBackfaceCulling;
-	float m_GUIVanishingPointZ;
-	float m_GUISurfaceNormal[3];
-	bool m_GUISurfaceNormalValid;
+	std::optional<entt::entity> m_Entities[10];
 
 	// System
 	RenderSystem m_SystemRender;

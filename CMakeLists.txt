@@ -1,8 +1,8 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-project ("Spheros")
+project ("VisibleSurfaceRendering")
 
-set(EXECUTABLE_NAME "Spheros")
+set(EXECUTABLE_NAME "VisibleSurfaceRendering")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_executable(${EXECUTABLE_NAME}
@@ -10,9 +10,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		"Source/Main.cpp"
 		"Source/Core/App.cpp"
 		"Source/Component/TransformComponent.cpp"
-		"Source/Component/SphereComponent.cpp"
+		
 		"Source/System/RenderSystem.cpp"
-		"Source/Core/Camera.cpp")
+		"Source/Core/Camera.cpp"
+		
+		"Source/Util/Color.cpp"
+		"Source/Component/Shape3DComponent.cpp" "Source/Component/SurfaceComponent.cpp" "Source/Component/SurfaceComponent.hpp" "Source/System/TransformSystem.hpp" "Source/System/TransformSystem.cpp" "Source/ExampleShape.cpp")
 	target_compile_definitions(${EXECUTABLE_NAME} PRIVATE _DEBUG_BUILD)
 else()
 	add_executable(${EXECUTABLE_NAME}
@@ -96,34 +99,10 @@ add_library("ImGui" STATIC
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/cpp/imgui_stdlib.cpp"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/fonts/binary_to_compressed_c.cpp"
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/freetype/imgui_freetype.cpp"
-	 "Source/Component/SphereComponent.hpp")
-
-
-# ImGui-SFML
-# Unresolved external symbol for no reason
-#add_library("ImGui-SFML" STATIC
-#	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp")
-#if (WIN32)
-#	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-#		target_link_libraries("ImGui-SFML" PRIVATE
-#			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-window-s-d.lib"
-#			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-graphics-s-d.lib"
-#			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/sfml-system-s-d.lib"
-#			"${CMAKE_SOURCE_DIR}/Lib/SFML/win-x64-lib/freetype.lib"
-#			"opengl32.lib"
-#			"winmm.lib"
-#			"gdi32.lib")
-#	endif()
-#endif()
-#target_link_libraries("ImGui-SFML" PRIVATE
-#	"ImGui")
-#target_include_directories("ImGui-SFML" PRIVATE
-#	"${CMAKE_SOURCE_DIR}/Lib/imgui"
-#	"${CMAKE_SOURCE_DIR}/Lib/SFML/include")
+	 "Source/System/TransformSystem.cpp")
 
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-#	"ImGui-SFML"
 	"ImGui")
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

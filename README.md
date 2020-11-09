@@ -1,6 +1,6 @@
-# Spheros
+# Visible Surface Rendering
 
-Project specification: https://drive.google.com/file/d/1oc3v2uTZPibaaAwLHdLKjV-XXGah59pA/view?usp=sharing
+Project specification: https://drive.google.com/file/d/1P8CvyMibf9ybc6awHf14rL9yykMASFDB/view?usp=sharing
 
 ## License
 
