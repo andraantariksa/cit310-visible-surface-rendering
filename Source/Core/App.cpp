@@ -13,7 +13,9 @@
 
 App::App():
 	m_Window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), APP_NAME, sf::Style::Titlebar | sf::Style::Close),
-    m_ClearColor(96, 96, 96)
+    m_ClearColor(CLEAR_COLOR),
+    // -1 means not selecting anything
+    m_SelectedEntityIdx(-1)
 {
 	m_Window.setFramerateLimit(15);
     ImGui::SFML::Init(m_Window);
@@ -30,7 +32,7 @@ App::App():
     const entt::entity pyramid2 = m_Registry.create();
     m_Registry.emplace<Shape3DComponent>(pyramid2, pyramidSurfaces);
     m_Registry.emplace<TransformComponent>(pyramid2);
-    m_Entities[2] = pyramid2;
+    m_Entities[1] = pyramid2;
 }
 
 App::~App()
@@ -51,6 +53,17 @@ void App::Run()
             if (event.type == sf::Event::Closed)
             {
                 m_Window.close();
+            }
+            else if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code <= sf::Keyboard::Num1 && event.key.code >= sf::Keyboard::Num9)
+                {
+                    m_SelectedEntityIdx = event.key.code - (int)sf::Keyboard::Num1;
+                }
+                else if (event.key.code <= sf::Keyboard::Escape)
+                {
+                    m_SelectedEntityIdx = -1;
+                }
             }
         }
 

@@ -1,14 +1,15 @@
-#ifndef _COMPONENT_SURFACECOMPONENT_HPP
-#define _COMPONENT_SURFACECOMPONENT_HPP
+#ifndef __COMPONENT_SURFACECOMPONENT_HPP
+#define __COMPONENT_SURFACECOMPONENT_HPP
 
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
+#include <array>
 
 class SurfaceComponent
 {
 public:
 	// Because the surface is a triangle
-	glm::vec3 m_Vertices[3];
+	std::array<glm::vec3, 3> m_Vertices;
 	sf::Color m_Color;
 
 	SurfaceComponent() = default;

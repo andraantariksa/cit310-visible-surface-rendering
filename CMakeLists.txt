@@ -8,14 +8,19 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_executable(${EXECUTABLE_NAME}
 		"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
 		"Source/Main.cpp"
+		"Source/ExampleShape.cpp"
 		"Source/Core/App.cpp"
-		"Source/Component/TransformComponent.cpp"
-		
-		"Source/System/RenderSystem.cpp"
 		"Source/Core/Camera.cpp"
-		
+		"Source/Component/TransformComponent.cpp"
+		"Source/Component/Shape3DComponent.cpp"
+		"Source/Component/SurfaceComponent.cpp"
+		"Source/Component/Surface2DComponent.cpp"
+		"Source/System/BaseRenderSystem.cpp"
+		"Source/System/PainterRenderSystem.cpp"
+		"Source/System/ZBufferRenderSystem.cpp"
+		"Source/System/TransformSystem.cpp"
 		"Source/Util/Color.cpp"
-		"Source/Component/Shape3DComponent.cpp" "Source/Component/SurfaceComponent.cpp" "Source/Component/SurfaceComponent.hpp" "Source/System/TransformSystem.hpp" "Source/System/TransformSystem.cpp" "Source/ExampleShape.cpp")
+		"Source/Misc/BinaryTreePartitioning.cpp")
 	target_compile_definitions(${EXECUTABLE_NAME} PRIVATE _DEBUG_BUILD)
 else()
 	add_executable(${EXECUTABLE_NAME}
@@ -39,6 +44,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 			target_compile_options(${EXECUTABLE_NAME} PRIVATE "/std:c++latest")
 		endif()
 	endif()
+	set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS /STACK:5000000)
 endif()
 
 if(WIN32)
@@ -99,7 +105,7 @@ add_library("ImGui" STATIC
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/cpp/imgui_stdlib.cpp"
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/fonts/binary_to_compressed_c.cpp"
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/freetype/imgui_freetype.cpp"
-	 "Source/System/TransformSystem.cpp")
+	 )
 
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE

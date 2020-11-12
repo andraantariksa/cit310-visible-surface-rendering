@@ -9,7 +9,6 @@ int main()
     return 0;
 }
 #else
-
 #include <Windows.h>
 
 INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)

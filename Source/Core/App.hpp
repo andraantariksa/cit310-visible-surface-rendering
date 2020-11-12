@@ -4,8 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <optional>
 
-#include "../System/RenderSystem.hpp"
+#include "../System/BaseRenderSystem.hpp"
 
 class App
 {
@@ -14,10 +15,11 @@ private:
 	sf::Clock m_DeltaClock;
 	entt::registry m_Registry;
 	sf::Color m_ClearColor;
-	std::optional<entt::entity> m_Entities[10];
+	std::array<std::optional<entt::entity>, 9> m_Entities;
+	int m_SelectedEntityIdx;
 
 	// System
-	RenderSystem m_SystemRender;
+	BaseRenderSystem m_SystemRender;
 public:
 	App();
 	~App();

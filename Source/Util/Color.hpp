@@ -1,4 +1,5 @@
-#ifndef __TEXTURE_COLOR_HPP
+#ifndef __UTIL_COLOR_HPP
+#define __UTIL_COLOR_HPP
 
 #include <SFML/Graphics.hpp>
 

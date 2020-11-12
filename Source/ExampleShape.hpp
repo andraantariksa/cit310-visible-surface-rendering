@@ -1,5 +1,5 @@
-#ifndef _EXAMPLESHAPE_HPP
-#define _EXAMPLESHAPE_HPP
+#ifndef __EXAMPLESHAPE_HPP
+#define __EXAMPLESHAPE_HPP
 #include <vector>
 
 #include "Component/SurfaceComponent.hpp"
