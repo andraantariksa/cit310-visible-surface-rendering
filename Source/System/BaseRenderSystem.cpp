@@ -18,9 +18,9 @@
 #define PI 3.14159265358979323846f
 #define RAD 0.0174533f
 
-BaseRenderSystem::BaseRenderSystem(float vanishingPointZ):
+BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, float vanishingPointZ):
 	// Painter as the default because it's the first one I made :p
-	m_RenderMode(RenderMethod::Painter)
+	m_RenderMethod(renderMethod)
 {
 	const float scaleX = 1.0f;
 	const float scaleY = 1.0f;
@@ -37,9 +37,11 @@ BaseRenderSystem::BaseRenderSystem(float vanishingPointZ):
 	m_MatWCSToVCS = glm::mat4(
 		glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
 		glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f / vanishingPointZ),
+		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f / -vanishingPointZ),
 		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
 	);
+
+	m_MatTransform = m_MatVCSToSCS * m_MatWCSToVCS;
 }
 
 void BaseRenderSystem::Update(entt::registry& registry)
@@ -65,7 +67,7 @@ void BaseRenderSystem::Update(entt::registry& registry)
 		}
 	);
 
-	switch (m_RenderMode)
+	switch (m_RenderMethod)
 	{
 	case BaseRenderSystem::RenderMethod::None:
 		break;
@@ -73,7 +75,7 @@ void BaseRenderSystem::Update(entt::registry& registry)
 		m_SystemPainterRender.Update(registry, *this, m_SurfacesVCS);
 		break;
 	case BaseRenderSystem::RenderMethod::ZBuffer:
-		m_SystemZBufferRender.Update(registry);
+		m_SystemZBufferRender.Update(registry, *this, m_SurfacesVCS);
 		break;
 	default:
 		break;
@@ -82,7 +84,7 @@ void BaseRenderSystem::Update(entt::registry& registry)
 
 void BaseRenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
 {
-	switch (m_RenderMode)
+	switch (m_RenderMethod)
 	{
 	case BaseRenderSystem::RenderMethod::None:
 		break;
@@ -95,6 +97,13 @@ void BaseRenderSystem::Render(entt::registry& registry, sf::RenderWindow& window
 	default:
 		break;
 	}
+}
+
+void BaseRenderSystem::ChangeRenderMethod(entt::registry& registry, RenderMethod renderMethod)
+{
+	m_RenderMethod = renderMethod;
+	INFO << (int)m_RenderMethod << '\n';
+	Update(registry);
 }
 
 void BaseRenderSystem::ResetMatrix(float vanishing_point_z)
@@ -117,7 +126,7 @@ sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::vec4& v)
 glm::vec4 BaseRenderSystem::TransformVCSToSCS(const glm::vec4& v)
 {
 	const auto result = m_MatVCSToSCS * v;
-	assert(result.w == 0.0f && "Uh oh w is 0");
+	assert(result.w != 0.0f && "Uh oh w is 0");
 	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
 }
 
@@ -126,7 +135,14 @@ glm::vec4 BaseRenderSystem::TransformWCSToVCS(const glm::vec4& v)
 	return m_MatWCSToVCS * v;
 }
 
+glm::vec4 BaseRenderSystem::TransformWCSToSCS(const glm::vec4& v)
+{
+	return glm::vec4();
+}
+
 glm::vec4 BaseRenderSystem::TransformOCSToWCS(const glm::vec4& v, const TransformComponent& transform)
 {
-	return transform.m_MatTransform * v;
+	const auto result = transform.m_MatTransform * v;
+	assert(result.w != 0.0f && "Uh oh w is 0");
+	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
 }

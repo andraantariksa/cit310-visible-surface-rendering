@@ -23,14 +23,14 @@ public:
 	// Stored in the class to avoid reallocation
 	std::vector<SurfaceComponent> m_SurfacesVCS;
 
-	enum class RenderMethod
+	enum class RenderMethod: int
 	{
 		None,
 		Painter,
 		ZBuffer
 	};
 
-	RenderMethod m_RenderMode;
+	RenderMethod m_RenderMethod;
 	
 	// WCS to VCS Matrix * VCS to SCS Matrix
 	glm::mat4 m_MatTransform;
@@ -39,11 +39,12 @@ public:
 
 	Camera m_Camera;
 
-	BaseRenderSystem(float vanishingPointZ=500.0f);
+	BaseRenderSystem(RenderMethod renderMethod=RenderMethod::Painter, float vanishingPointZ=500.0f);
 	~BaseRenderSystem() = default;
 
 	void Update(entt::registry& registry);
 	void Render(entt::registry& registry, sf::RenderWindow& window);
+	void ChangeRenderMethod(entt::registry& registry, RenderMethod renderMethod);
 
 	// Default vanishing point
 	void ResetMatrix(float vanishing_point_z = -500.0f);
@@ -53,6 +54,7 @@ public:
 	sf::Vector2f TransformVec4GLMToVec2SFML(const glm::vec4& v);
 	glm::vec4 TransformVCSToSCS(const glm::vec4& v);
 	glm::vec4 TransformWCSToVCS(const glm::vec4& v);
+	glm::vec4 TransformWCSToSCS(const glm::vec4& v);
 	glm::vec4 TransformOCSToWCS(const glm::vec4& v, const TransformComponent& transform);
 };
 

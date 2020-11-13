@@ -3,9 +3,9 @@
 #include "../Util/Logger.hpp"
 
 TransformComponent::TransformComponent() noexcept:
-	m_MatTransform(1.0f),
+	m_MatRotation(1.0f),
 	m_MatTranslation(1.0f),
-	m_MatRotation(1.0f)
+	m_MatTransform(1.0f)
 {
 }
 

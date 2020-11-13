@@ -2,10 +2,33 @@
 
 #include <glm/glm.hpp>
 #include <algorithm>
-#include "../Component/SurfaceComponent.hpp"
+#include <glm/glm.hpp>
 
-BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& surfaces)
+#include "../Component/SurfaceComponent.hpp"
+#include "../Core/Camera.hpp"
+#include "../Util/Logger.hpp"
+
+static float LineIntersection(glm::vec3& from, glm::vec3& to, glm::vec3& arbitraryPointOnPlane, glm::vec3& normal)
 {
+	return glm::dot(arbitraryPointOnPlane - from, normal) / glm::dot((to - from), normal);
+}
+
+static glm::vec3 LineParametric(glm::vec3& from, glm::vec3& to, float percentage)
+{
+	return glm::vec3(
+		from[0]  + (percentage * (to[0] - from[0])),
+		from[1] + (percentage * (to[1] - from[1])),
+		from[2] + (percentage * (to[2] - from[2]))
+	);
+}
+
+BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& surfaces) :
+	m_NodeLeft(nullptr),
+	m_NodeRight(nullptr)
+{
+	Camera camera;
+
+	assert(m_Surfaces.size() == 0 && "BSP with 0 surface");
 	if (m_Surfaces.size() == 1)
 	{
 		return;
@@ -13,56 +36,320 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 	else
 	{
 		// First surface as the reference surface
-		auto& it = m_Surfaces.cbegin();
-		const SurfaceComponent& referenceSurface = (*++it);
+		SurfaceComponent referenceSurface(*surfaces.begin());
 		m_Surfaces.push_back(referenceSurface);
 		glm::vec3 normal = glm::cross(
 			referenceSurface.m_Vertices[1] - referenceSurface.m_Vertices[0],
 			referenceSurface.m_Vertices[2] - referenceSurface.m_Vertices[1]);
-		
+
 		// To store the front and back surface
 		std::vector<SurfaceComponent> frontSideSurfaces;
 		std::vector<SurfaceComponent> backSideSurfaces;
 
 		// Start from the second surface
-		for (; it != m_Surfaces.cend(); ++it)
+		for (auto it = surfaces.begin() + 1; it != surfaces.end(); ++it)
 		{
 			// Traverse on the polygon vertices (Because it's a triangle then the total vertex is 3)
-			std::array<float, 3> dotProductResults;
-			for (size_t ithVertex = 0; ithVertex < (*it).m_Vertices.size(); ++ithVertex)
+			std::array<DotResult, 3> dotProductResults;
+			for (size_t ithVertex = 0; ithVertex < it->m_Vertices.size(); ++ithVertex)
 			{
-				dotProductResults[ithVertex] = glm::dot(normal, (*it).m_Vertices[ithVertex] - referenceSurface.m_Vertices[0]);
+				dotProductResults[ithVertex].m_Idx = ithVertex;
+				dotProductResults[ithVertex].m_Dot = glm::dot(normal, it->m_Vertices[ithVertex] - referenceSurface.m_Vertices[0]);
 			}
-			std::sort(dotProductResults.begin(), dotProductResults.end());
-			
+			std::sort(
+				dotProductResults.begin(),
+				dotProductResults.end(),
+				[](DotResult& dotProductResults, DotResult& otherDotProductResults)
+				{
+					return dotProductResults.m_Dot < otherDotProductResults.m_Dot;
+				}
+			);
+
 			// # Cases
 			// Coplanar and front
-			if (dotProductResults[0] >= 0.0f && dotProductResults[1] >= 0.0f && dotProductResults[2] >= 0.0f)
+			if (dotProductResults[0].m_Dot >= 0.0f && dotProductResults[1].m_Dot >= 0.0f && dotProductResults[2].m_Dot >= 0.0f)
 			{
 				frontSideSurfaces.push_back(*it);
 			}
 			// Back
-			else if (dotProductResults[0] < 0.0f && dotProductResults[1] <= 0.0f && dotProductResults[2] <= 0.0f)
+			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot <= 0.0f && dotProductResults[2].m_Dot <= 0.0f)
 			{
 				backSideSurfaces.push_back(*it);
 			}
-			// Others
-			else if (dotProductResults[0] < 0.0f && dotProductResults[1] < 0.0f && dotProductResults[2] > 0.0f)
+			// Intersect
+			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot < 0.0f && dotProductResults[2].m_Dot > 0.0f)
 			{
+				float acT = LineIntersection(
+					it->m_Vertices[dotProductResults[0].m_Idx],
+					it->m_Vertices[dotProductResults[2].m_Idx],
+					referenceSurface.m_Vertices[0],
+					normal);
+				float bcT = LineIntersection(
+					it->m_Vertices[dotProductResults[1].m_Idx],
+					it->m_Vertices[dotProductResults[2].m_Idx],
+					referenceSurface.m_Vertices[0],
+					normal);
+				glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[0].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], acT);
+				glm::vec3 e = LineParametric(it->m_Vertices[dotProductResults[1].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], bcT);
 
+				if (glm::dot(
+					glm::cross(
+						d - it->m_Vertices[dotProductResults[0].m_Idx],
+						it->m_Vertices[dotProductResults[1].m_Idx] - d
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[0].m_Idx],
+							d,
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							d,
+							it->m_Vertices[dotProductResults[0].m_Idx],
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							it->m_Color
+						)
+					);
+				}
+				if (glm::dot(
+					glm::cross(
+						d - it->m_Vertices[dotProductResults[1].m_Idx],
+						e - d
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							d,
+							e,
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							d,
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							e,
+							it->m_Color
+						)
+					);
+				}
+				if (glm::dot(
+					glm::cross(
+						e - it->m_Vertices[dotProductResults[2].m_Idx],
+						d - e
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[2].m_Idx],
+							e,
+							d,
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							e,
+							it->m_Vertices[dotProductResults[2].m_Idx],
+							d,
+							it->m_Color
+						)
+					);
+				}
 			}
+			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot > 0.0f && dotProductResults[2].m_Dot > 0.0f)
+			{
+				float bcT = LineIntersection(
+					it->m_Vertices[dotProductResults[1].m_Idx],
+					it->m_Vertices[dotProductResults[0].m_Idx],
+					referenceSurface.m_Vertices[0],
+					normal);
+				float acT = LineIntersection(
+					it->m_Vertices[dotProductResults[2].m_Idx],
+					it->m_Vertices[dotProductResults[0].m_Idx],
+					referenceSurface.m_Vertices[0],
+					normal);
+
+				glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[2].m_Idx], it->m_Vertices[dotProductResults[0].m_Idx], acT);
+				glm::vec3 e = LineParametric(it->m_Vertices[dotProductResults[1].m_Idx], it->m_Vertices[dotProductResults[0].m_Idx], bcT);
+
+				if (glm::dot(
+					glm::cross(
+						d - it->m_Vertices[dotProductResults[2].m_Idx],
+						it->m_Vertices[dotProductResults[1].m_Idx] - d
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[2].m_Idx],
+							d,
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							d,
+							it->m_Vertices[dotProductResults[2].m_Idx],
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							it->m_Color
+						)
+					);
+				}
+				if (glm::dot(
+					glm::cross(
+						d - it->m_Vertices[dotProductResults[1].m_Idx],
+						e - d
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							d,
+							e,
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					frontSideSurfaces.push_back(
+						SurfaceComponent(
+							d,
+							it->m_Vertices[dotProductResults[1].m_Idx],
+							e,
+							it->m_Color
+						)
+					);
+				}
+				if (glm::dot(
+					glm::cross(
+						e - it->m_Vertices[dotProductResults[0].m_Idx],
+						d - e
+					),
+					camera.m_Direction) < 0.0f)
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							it->m_Vertices[dotProductResults[0].m_Idx],
+							e,
+							d,
+							it->m_Color
+						)
+					);
+				}
+				else
+				{
+					backSideSurfaces.push_back(
+						SurfaceComponent(
+							e,
+							it->m_Vertices[dotProductResults[0].m_Idx],
+							d,
+							it->m_Color
+						)
+					);
+				}
+			}
+			//else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot == 0.0f && dotProductResults[2].m_Dot > 0.0f)
+			//{
+			//	float acT = LineIntersection(
+			//		it->m_Vertices[dotProductResults[0].m_Idx],
+			//		it->m_Vertices[dotProductResults[2].m_Idx],
+			//		referenceSurface.m_Vertices[0],
+			//		normal);
+
+			//	glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[0].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], acT);
+
+			//	if (glm::dot(
+			//		glm::cross(
+			//			it->m_Vertices[dotProductResults[1].m_Idx] - it->m_Vertices[dotProductResults[0].m_Idx],
+			//			d - it->m_Vertices[dotProductResults[1].m_Idx]
+			//		),
+			//		camera.m_Direction) < 0.0f)
+			//	{
+			//		backSideSurfaces.push_back(
+			//			SurfaceComponent(
+			//				it->m_Vertices[dotProductResults[0].m_Idx],
+			//				it->m_Vertices[dotProductResults[1].m_Idx],
+			//				d,
+			//				it->m_Color
+			//			)
+			//		);
+			//	}
+			//	else
+			//	{
+			//		backSideSurfaces.push_back(
+			//			SurfaceComponent(
+			//				it->m_Vertices[dotProductResults[1].m_Idx],
+			//				it->m_Vertices[dotProductResults[0].m_Idx],
+			//				d,
+			//				it->m_Color
+			//			)
+			//		);
+			//	}
+
+			//	if (glm::dot(
+			//		glm::cross(
+			//			it->m_Vertices[dotProductResults[1].m_Idx] - d,
+			//			it->m_Vertices[dotProductResults[2].m_Idx] - it->m_Vertices[dotProductResults[1].m_Idx]
+			//		),
+			//		camera.m_Direction) < 0.0f)
+			//	{
+			//		frontSideSurfaces.push_back(
+			//			SurfaceComponent(
+			//				d,
+			//				it->m_Vertices[dotProductResults[1].m_Idx],
+			//				it->m_Vertices[dotProductResults[2].m_Idx],
+			//				it->m_Color
+			//			)
+			//		);
+			//	}
+			//	else
+			//	{
+			//		frontSideSurfaces.push_back(
+			//			SurfaceComponent(
+			//				it->m_Vertices[dotProductResults[1].m_Idx],
+			//				d,
+			//				it->m_Vertices[dotProductResults[2].m_Idx],
+			//				it->m_Color
+			//			)
+			//		);
+			//	}
+			//}
 		}
 
-		if (backSideSurfaces.size() > 0)
+		if (!backSideSurfaces.empty())
 		{
 			// Left for back
 			m_NodeLeft = std::make_unique<BinaryTreePartitioning>(backSideSurfaces);
 		}
 
-		if (frontSideSurfaces.size() > 0)
+		if (!frontSideSurfaces.empty())
 		{
 			// Right for front
-			m_NodeRight = std::make_unique<BinaryTreePartitioning>(frontSideSurfaces);;
+			m_NodeRight = std::make_unique<BinaryTreePartitioning>(frontSideSurfaces);
 		}
 	}
 }

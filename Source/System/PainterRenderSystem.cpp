@@ -8,6 +8,7 @@
 #include "../Component/SurfaceComponent.hpp"
 #include "../Component/Surface2DComponent.hpp"
 #include "../Misc/BinaryTreePartitioning.hpp"
+#include "../Util/Logger.hpp"
 
 void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<SurfaceComponent>& surfacesVCS)
 {
@@ -16,14 +17,14 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 	BinaryTreePartitioning bsp(surfacesVCS);
 
 	std::function<void(std::vector<SurfaceComponent>&)> traverseLambda = [&](std::vector<SurfaceComponent>& surfaces) -> void {
-		for (auto& it = surfaces.cbegin(); it != surfaces.cend(); ++it)
+		for (auto& surface : surfaces)
 		{
 			m_CachedSurfaces2D.push_back(
 				Surface2DComponent(
-					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4((*it).m_Vertices[0], 1.0f))),
-					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4((*it).m_Vertices[1], 1.0f))),
-					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4((*it).m_Vertices[2], 1.0f))),
-					(*it).m_Color)
+					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[0], 1.0f))),
+					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[1], 1.0f))),
+					baseRenderSystem.TransformVec4GLMToVec2SFML(baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[2], 1.0f))),
+					surface.m_Color)
 			);
 		}
 	};
@@ -42,6 +43,7 @@ void PainterRenderSystem::Render(entt::registry& registry, sf::RenderWindow& win
 void PainterRenderSystem::DrawSurface(sf::RenderWindow& window, const Surface2DComponent& surface)
 {
 	sf::ConvexShape triangle(3);
+	triangle.setFillColor(surface.m_Color);
 	triangle.setPoint(0, surface.m_Vertices[0]);
 	triangle.setPoint(1, surface.m_Vertices[1]);
 	triangle.setPoint(2, surface.m_Vertices[2]);

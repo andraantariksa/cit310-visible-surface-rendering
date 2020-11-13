@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
+#include "../Util/Logger.hpp"
+
 #define PI 3.14159265358979323846f
 
 static inline float Deg2Rad(float deg)
@@ -38,3 +40,5 @@ void TransformSystem::UpdateMatTransform(entt::registry& registry, entt::entity&
 	TransformComponent& transformComponent = registry.get<TransformComponent>(entity);
 	transformComponent.m_MatTransform = transformComponent.m_MatTranslation * transformComponent.m_MatRotation;
 }
+
+#undef PI

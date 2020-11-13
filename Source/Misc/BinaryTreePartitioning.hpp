@@ -7,6 +7,13 @@
 
 #include "../Component/SurfaceComponent.hpp"
 
+class DotResult
+{
+public:
+	size_t m_Idx;
+	float m_Dot;
+};
+
 class BinaryTreePartitioning
 {
 public:
