@@ -13,6 +13,10 @@
 #include "../System/BaseRenderSystem.hpp"
 #include "../Util/Logger.hpp"
 
+// TODO
+// Implement file upload
+// Idk which format we should use, or we could create a new format that based on CSV?
+
 App::App():
 	m_Window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), APP_NAME, sf::Style::Titlebar | sf::Style::Close),
     m_ClearColor(CLEAR_COLOR),
@@ -31,7 +35,6 @@ App::App():
     m_Registry.emplace<Shape3DComponent>(*m_Entities[0], Shape3DExample());
     m_Registry.emplace<TransformComponent>(*m_Entities[0]);
 
-    m_SystemTransform.Rotate(m_Registry, *m_Entities[0], glm::vec3(1.0f, 0.0f, 0.0f), -90.0f);
     m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::vec3(-50.0f, 0.0f, 0.0f));
 
     m_Entities[1] = std::make_unique<entt::entity>(m_Registry.create());

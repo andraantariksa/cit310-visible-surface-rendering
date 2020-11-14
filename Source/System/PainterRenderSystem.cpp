@@ -42,10 +42,12 @@ void PainterRenderSystem::Render(entt::registry& registry, sf::RenderWindow& win
 
 void PainterRenderSystem::DrawSurface(sf::RenderWindow& window, const Surface2DComponent& surface)
 {
-	sf::ConvexShape triangle(3);
-	triangle.setFillColor(surface.m_Color);
-	triangle.setPoint(0, surface.m_Vertices[0]);
-	triangle.setPoint(1, surface.m_Vertices[1]);
-	triangle.setPoint(2, surface.m_Vertices[2]);
+	sf::VertexArray triangle(sf::Triangles, 3);
+	triangle[0].position = surface.m_Vertices[0];
+	triangle[1].position = surface.m_Vertices[1];
+	triangle[2].position = surface.m_Vertices[2];
+	triangle[0].color = surface.m_Color;
+	triangle[1].color = surface.m_Color;
+	triangle[2].color = surface.m_Color;
 	window.draw(triangle);
 }

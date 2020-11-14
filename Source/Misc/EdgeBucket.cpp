@@ -23,5 +23,5 @@ void EdgeBucket::NextX(float A, float B, float C)
 
 bool EdgeBucket::IsAlive(size_t yPos)
 {
-	return yPos <= m_YMax;
+	return yPos < m_YMax;
 }

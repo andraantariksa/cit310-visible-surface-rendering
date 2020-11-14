@@ -16,7 +16,7 @@ static float LineIntersection(glm::vec3& from, glm::vec3& to, glm::vec3& arbitra
 static glm::vec3 LineParametric(glm::vec3& from, glm::vec3& to, float percentage)
 {
 	return glm::vec3(
-		from[0]  + (percentage * (to[0] - from[0])),
+		from[0] + (percentage * (to[0] - from[0])),
 		from[1] + (percentage * (to[1] - from[1])),
 		from[2] + (percentage * (to[2] - from[2]))
 	);
@@ -26,7 +26,8 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 	m_NodeLeft(nullptr),
 	m_NodeRight(nullptr)
 {
-	Camera camera;
+	// ???
+	//Camera camera;
 
 	assert(m_Surfaces.size() == 0 && "BSP with 0 surface");
 	if (m_Surfaces.size() == 1)
@@ -47,7 +48,7 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 		std::vector<SurfaceComponent> backSideSurfaces;
 
 		// Start from the second surface
-		for (auto it = surfaces.begin() + 1; it != surfaces.end(); ++it)
+		for (auto it = std::next(surfaces.begin()); it != surfaces.end(); ++it)
 		{
 			// Traverse on the polygon vertices (Because it's a triangle then the total vertex is 3)
 			std::array<DotResult, 3> dotProductResults;
@@ -76,6 +77,9 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 			{
 				backSideSurfaces.push_back(*it);
 			}
+			// TODO
+			// Fix the circular painter algorithm
+			// The rest of the control flows create a circular surface
 			// Intersect
 			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot < 0.0f && dotProductResults[2].m_Dot > 0.0f)
 			{
@@ -92,87 +96,30 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 				glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[0].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], acT);
 				glm::vec3 e = LineParametric(it->m_Vertices[dotProductResults[1].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], bcT);
 
-				if (glm::dot(
-					glm::cross(
-						d - it->m_Vertices[dotProductResults[0].m_Idx],
-						it->m_Vertices[dotProductResults[1].m_Idx] - d
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[0].m_Idx],
-							d,
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							d,
-							it->m_Vertices[dotProductResults[0].m_Idx],
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							it->m_Color
-						)
-					);
-				}
-				if (glm::dot(
-					glm::cross(
-						d - it->m_Vertices[dotProductResults[1].m_Idx],
-						e - d
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							d,
-							e,
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							d,
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							e,
-							it->m_Color
-						)
-					);
-				}
-				if (glm::dot(
-					glm::cross(
-						e - it->m_Vertices[dotProductResults[2].m_Idx],
-						d - e
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[2].m_Idx],
-							e,
-							d,
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							e,
-							it->m_Vertices[dotProductResults[2].m_Idx],
-							d,
-							it->m_Color
-						)
-					);
-				}
+				backSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[0].m_Idx],
+						d,
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						it->m_Color
+					)
+				);
+				backSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						d,
+						e,
+						it->m_Color
+					)
+				);
+				frontSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[2].m_Idx],
+						e,
+						d,
+						it->m_Color
+					)
+				);
 			}
 			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot > 0.0f && dotProductResults[2].m_Dot > 0.0f)
 			{
@@ -190,154 +137,58 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 				glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[2].m_Idx], it->m_Vertices[dotProductResults[0].m_Idx], acT);
 				glm::vec3 e = LineParametric(it->m_Vertices[dotProductResults[1].m_Idx], it->m_Vertices[dotProductResults[0].m_Idx], bcT);
 
-				if (glm::dot(
-					glm::cross(
-						d - it->m_Vertices[dotProductResults[2].m_Idx],
-						it->m_Vertices[dotProductResults[1].m_Idx] - d
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[2].m_Idx],
-							d,
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							d,
-							it->m_Vertices[dotProductResults[2].m_Idx],
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							it->m_Color
-						)
-					);
-				}
-				if (glm::dot(
-					glm::cross(
-						d - it->m_Vertices[dotProductResults[1].m_Idx],
-						e - d
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							d,
-							e,
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					frontSideSurfaces.push_back(
-						SurfaceComponent(
-							d,
-							it->m_Vertices[dotProductResults[1].m_Idx],
-							e,
-							it->m_Color
-						)
-					);
-				}
-				if (glm::dot(
-					glm::cross(
-						e - it->m_Vertices[dotProductResults[0].m_Idx],
-						d - e
-					),
-					camera.m_Direction) < 0.0f)
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							it->m_Vertices[dotProductResults[0].m_Idx],
-							e,
-							d,
-							it->m_Color
-						)
-					);
-				}
-				else
-				{
-					backSideSurfaces.push_back(
-						SurfaceComponent(
-							e,
-							it->m_Vertices[dotProductResults[0].m_Idx],
-							d,
-							it->m_Color
-						)
-					);
-				}
+				frontSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[2].m_Idx],
+						d,
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						it->m_Color
+					)
+				);
+				frontSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						d,
+						e,
+						it->m_Color
+					)
+				);
+				backSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[0].m_Idx],
+						e,
+						d,
+						it->m_Color
+					)
+				);
 			}
-			//else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot == 0.0f && dotProductResults[2].m_Dot > 0.0f)
-			//{
-			//	float acT = LineIntersection(
-			//		it->m_Vertices[dotProductResults[0].m_Idx],
-			//		it->m_Vertices[dotProductResults[2].m_Idx],
-			//		referenceSurface.m_Vertices[0],
-			//		normal);
+			else if (dotProductResults[0].m_Dot < 0.0f && dotProductResults[1].m_Dot == 0.0f && dotProductResults[2].m_Dot > 0.0f)
+			{
+				float acT = LineIntersection(
+					it->m_Vertices[dotProductResults[0].m_Idx],
+					it->m_Vertices[dotProductResults[2].m_Idx],
+					referenceSurface.m_Vertices[0],
+					normal);
 
-			//	glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[0].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], acT);
+				glm::vec3 d = LineParametric(it->m_Vertices[dotProductResults[0].m_Idx], it->m_Vertices[dotProductResults[2].m_Idx], acT);
 
-			//	if (glm::dot(
-			//		glm::cross(
-			//			it->m_Vertices[dotProductResults[1].m_Idx] - it->m_Vertices[dotProductResults[0].m_Idx],
-			//			d - it->m_Vertices[dotProductResults[1].m_Idx]
-			//		),
-			//		camera.m_Direction) < 0.0f)
-			//	{
-			//		backSideSurfaces.push_back(
-			//			SurfaceComponent(
-			//				it->m_Vertices[dotProductResults[0].m_Idx],
-			//				it->m_Vertices[dotProductResults[1].m_Idx],
-			//				d,
-			//				it->m_Color
-			//			)
-			//		);
-			//	}
-			//	else
-			//	{
-			//		backSideSurfaces.push_back(
-			//			SurfaceComponent(
-			//				it->m_Vertices[dotProductResults[1].m_Idx],
-			//				it->m_Vertices[dotProductResults[0].m_Idx],
-			//				d,
-			//				it->m_Color
-			//			)
-			//		);
-			//	}
-
-			//	if (glm::dot(
-			//		glm::cross(
-			//			it->m_Vertices[dotProductResults[1].m_Idx] - d,
-			//			it->m_Vertices[dotProductResults[2].m_Idx] - it->m_Vertices[dotProductResults[1].m_Idx]
-			//		),
-			//		camera.m_Direction) < 0.0f)
-			//	{
-			//		frontSideSurfaces.push_back(
-			//			SurfaceComponent(
-			//				d,
-			//				it->m_Vertices[dotProductResults[1].m_Idx],
-			//				it->m_Vertices[dotProductResults[2].m_Idx],
-			//				it->m_Color
-			//			)
-			//		);
-			//	}
-			//	else
-			//	{
-			//		frontSideSurfaces.push_back(
-			//			SurfaceComponent(
-			//				it->m_Vertices[dotProductResults[1].m_Idx],
-			//				d,
-			//				it->m_Vertices[dotProductResults[2].m_Idx],
-			//				it->m_Color
-			//			)
-			//		);
-			//	}
-			//}
+				backSideSurfaces.push_back(
+					SurfaceComponent(
+						it->m_Vertices[dotProductResults[0].m_Idx],
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						d,
+						it->m_Color
+					)
+				);
+				frontSideSurfaces.push_back(
+					SurfaceComponent(
+						d,
+						it->m_Vertices[dotProductResults[1].m_Idx],
+						it->m_Vertices[dotProductResults[2].m_Idx],
+						it->m_Color
+					)
+				);
+			}
 		}
 
 		if (!backSideSurfaces.empty())
