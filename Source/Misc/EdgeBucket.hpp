@@ -9,8 +9,9 @@ public:
 	int m_DX;
 	int m_DY;
 	int m_Carry;
+	float m_ZOfYMin;
 
-	size_t NextX();
+	void NextX(float A, float B, float C);
 	bool IsAlive(size_t y_pos);
 };
 

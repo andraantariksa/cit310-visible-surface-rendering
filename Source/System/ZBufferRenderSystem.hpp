@@ -41,11 +41,13 @@ public:
 		size_t m_XOfYMin;
 		int m_DX;
 		int m_DY;
+		float m_ZOfYMin;
 	};
 	EdgeBucketResult GetEdgeBucket(glm::vec3& a, glm::vec3& b);
 
 	void Clear();
-	void SetPixel(glm::uvec2 const& position, sf::Color color);
+
+	void SetPixel(glm::uvec2 const& position, sf::Color color, float z);
 };
 
 #endif

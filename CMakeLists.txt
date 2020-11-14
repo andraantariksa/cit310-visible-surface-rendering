@@ -93,6 +93,8 @@ if(WIN32)
 					"gdi32.lib")
 			endif()
 		endif()
+	else()
+		message(FATAL_ERROR "x64-bit compiler required")
 	endif()
 endif()
 

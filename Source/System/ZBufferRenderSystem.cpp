@@ -36,6 +36,12 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[2], 1.0f)),
 			surface.m_Color);
 
+		glm::vec3 normal = glm::cross(
+			surface.m_Vertices[1] - surface.m_Vertices[0],
+			surface.m_Vertices[2] - surface.m_Vertices[1]
+		);
+		float dZX = -normal.x / normal.z;
+
 		auto [yMinOfPolygon, yMaxOfPolygon] = std::minmax_element(
 			surface.m_Vertices.begin(),
 			surface.m_Vertices.end(),
@@ -64,7 +70,8 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					.m_XOfYMin = result.m_XOfYMin,
 					.m_DX = result.m_DX,
 					.m_DY = result.m_DY,
-					.m_Carry = 0
+					.m_Carry = 0,
+					.m_ZOfYMin = result.m_ZOfYMin
 				}
 			);
 
@@ -84,14 +91,13 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 			for (auto edgeBucket = m_ActiveEdges.begin(); edgeBucket != m_ActiveEdges.end(); ++(++edgeBucket))
 			{
 				auto nextEdgeBucket = std::next(edgeBucket);
+				
+				float z = edgeBucket->m_ZOfYMin;
 				for (size_t x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
 				{
-					SetPixel(glm::uvec2(x, y + yMinOfPolygon->y), surface.m_Color);
+					SetPixel(glm::uvec2(x, y + yMinOfPolygon->y), surface.m_Color, z);
+					z += dZX;
 				}
-				/*if (surface.m_Color == sf::Color(235, 64, 52))
-				{
-					INFO << "From " << edgeBucket->m_XOfYMin << " to " << nextEdgeBucket->m_XOfYMin << '\n';
-				}*/
 			}
 
 			m_ActiveEdges.erase(
@@ -100,7 +106,7 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					m_ActiveEdges.end(),
 					[&](EdgeBucket& edgeBucket)
 					{
-						edgeBucket.NextX();
+						edgeBucket.NextX(normal.x, normal.y, normal.z);
 						return !edgeBucket.IsAlive(y);
 					}
 				),
@@ -128,11 +134,13 @@ ZBufferRenderSystem::EdgeBucketResult ZBufferRenderSystem::GetEdgeBucket(glm::ve
 	{
 		result.m_YMin = (size_t)a.y;
 		result.m_XOfYMin = (size_t)a.x;
+		result.m_ZOfYMin = a.z;
 	}
 	else
 	{
 		result.m_YMin = (size_t)b.y;
 		result.m_XOfYMin = (size_t)b.x;
+		result.m_ZOfYMin = b.z;
 	}
 	result.m_YMax = std::max((size_t)a.y, (size_t)b.y);
 	result.m_DX = (int)a.x - (int)b.x;
@@ -168,9 +176,16 @@ void ZBufferRenderSystem::Clear()
 	m_Texture.update(m_TexturePixels.data());
 }
 
-void ZBufferRenderSystem::SetPixel(glm::uvec2 const& position, sf::Color color)
+void ZBufferRenderSystem::SetPixel(glm::uvec2 const& position, sf::Color color, float z)
 {
 	assert(position.x < WINDOW_WIDTH && "Bruh moment");
+
+	if (z <= m_ZBuffer[position.y][position.x])
+	{
+		return;
+	}
+
+	m_ZBuffer[position.y][position.x] = z;
 
 	const size_t currentPixelPos = ((size_t)position.x + ((size_t)position.y * WINDOW_WIDTH)) * 4L;
 	m_TexturePixels[currentPixelPos] = color.r;

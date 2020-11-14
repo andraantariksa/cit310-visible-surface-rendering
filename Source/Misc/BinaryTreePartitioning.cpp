@@ -36,7 +36,7 @@ BinaryTreePartitioning::BinaryTreePartitioning(std::vector<SurfaceComponent>& su
 	else
 	{
 		// First surface as the reference surface
-		SurfaceComponent referenceSurface(*surfaces.begin());
+		SurfaceComponent& referenceSurface = *surfaces.begin();
 		m_Surfaces.push_back(referenceSurface);
 		glm::vec3 normal = glm::cross(
 			referenceSurface.m_Vertices[1] - referenceSurface.m_Vertices[0],
