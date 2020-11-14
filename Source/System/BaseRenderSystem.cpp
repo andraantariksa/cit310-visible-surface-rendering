@@ -30,7 +30,7 @@ BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, float vanishingPoi
 	m_MatVCSToSCS = glm::mat4(
 		glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
 		glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 0.0f, 0.0f),
+		glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
 		glm::vec4(translateX, translateY, 0.0f, 1.0f)
 	);
 
@@ -132,7 +132,10 @@ glm::vec4 BaseRenderSystem::TransformVCSToSCS(const glm::vec4& v)
 
 glm::vec4 BaseRenderSystem::TransformWCSToVCS(const glm::vec4& v)
 {
-	return m_MatWCSToVCS * v;
+	const auto result = m_MatWCSToVCS * v;
+	assert(result.w != 0.0f && "Uh oh w is 0");
+	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
+	//return m_MatWCSToVCS * v;
 }
 
 glm::vec4 BaseRenderSystem::TransformWCSToSCS(const glm::vec4& v)

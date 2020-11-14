@@ -36,6 +36,7 @@ public:
 	glm::mat4 m_MatTransform;
 	glm::mat4 m_MatWCSToVCS;
 	glm::mat4 m_MatVCSToSCS;
+	glm::mat4 m_MatVCSToSCSWithZ;
 
 	Camera m_Camera;
 

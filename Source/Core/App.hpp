@@ -20,6 +20,12 @@ private:
 	int m_SelectedEntityIdx;
 
 	int m_GUIRenderMethod;
+	enum class TransformationMethod : int
+	{
+		Rotation,
+		Translation
+	};
+	int m_GUITransformationMethod;
 
 	// System
 	BaseRenderSystem m_SystemRender;

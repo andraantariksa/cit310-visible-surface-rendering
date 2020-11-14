@@ -16,9 +16,10 @@
 #include "../Macro.hpp"
 #include "../Util/Logger.hpp"
 
-ZBufferRenderSystem::ZBufferRenderSystem() :
-	m_Sprite(m_Texture)
+ZBufferRenderSystem::ZBufferRenderSystem()
 {
+	m_Texture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	m_Sprite.setTexture(m_Texture);
 	Clear();
 }
 
@@ -28,49 +29,89 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 	for (auto& surface : surfacesVCS)
 	{
-		// Traverse on edge
-		glm::vec3& prev = *--surface.m_Vertices.end();
-		for (glm::vec3& current : surface.m_Vertices)
-		{
-			if (prev.y == current.y)
-			{
-				continue;
-			}
-			ZBufferRenderSystem::EdgeBucketResult result = GetEdgeBucket(prev, current);
-			EdgeBucket edgeBucket{
-				.m_YMax = result.m_YMax,
-				.m_XOfYMin = result.m_XOfYMin,
-				.m_DX = result.m_DX,
-				.m_DY = result.m_DY,
-				.m_Carry = 0
-			};
-			INFO << result.m_YMin << " " << edgeBucket.m_XOfYMin << '\n';
-			m_SortedEdgeArray[result.m_YMin].push_back(edgeBucket);
-		}
-	}
+		// Change it into SCS and preserve the Z value, which will used by the Z buffer
+		surface = SurfaceComponent(
+			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[0], 1.0f)),
+			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[1], 1.0f)),
+			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[2], 1.0f)),
+			surface.m_Color);
 
-	// Care underflow
-	for (size_t y = WINDOW_HEIGHT; y >= 0; --y)
-	{
-		std::sort(
-			m_ActiveEdges.begin(),
-			m_ActiveEdges.end(),
-			[](EdgeBucket& edgeBucket, EdgeBucket& otherEdgeBucket) {
-				return edgeBucket.m_XOfYMin <= otherEdgeBucket.m_XOfYMin;
+		auto [yMinOfPolygon, yMaxOfPolygon] = std::minmax_element(
+			surface.m_Vertices.begin(),
+			surface.m_Vertices.end(),
+			[](glm::vec3& coord, glm::vec3& anotherCoord) {
+				return coord.y < anotherCoord.y;
 			}
 		);
 
-		for (auto& edgeBucket = m_ActiveEdges.begin(); edgeBucket != m_ActiveEdges.end(); ++(++edgeBucket))
+		m_ActiveEdges.clear();
+		std::vector<std::vector<EdgeBucket>> sortedEdgeArray((size_t)yMaxOfPolygon->y - (size_t)yMinOfPolygon->y + 1);
+
+		// Traverse on edge
+		glm::vec3 prev = *std::prev(surface.m_Vertices.end());
+		for (glm::vec3 current : surface.m_Vertices)
 		{
-			auto& nextEdgeBucket = std::next(edgeBucket);
-			for (size_t x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
+			if ((int)prev.y - (int)current.y == 0)
 			{
-				SetPixel(glm::uvec2(x, y), sf::Color::Red);
+				prev = current;
+				continue;
 			}
+
+			ZBufferRenderSystem::EdgeBucketResult result = GetEdgeBucket(prev, current);
+			sortedEdgeArray[result.m_YMin - (size_t)yMinOfPolygon->y].push_back(
+				EdgeBucket{
+					.m_YMax = result.m_YMax - (size_t)yMinOfPolygon->y,
+					.m_XOfYMin = result.m_XOfYMin,
+					.m_DX = result.m_DX,
+					.m_DY = result.m_DY,
+					.m_Carry = 0
+				}
+			);
+
+			prev = current;
 		}
-		
-		m_ActiveEdges.insert(m_ActiveEdges.end(), m_SortedEdgeArray[y].begin(), m_SortedEdgeArray[y].end());
+
+		for (size_t y = 0; y < sortedEdgeArray.size(); ++y)
+		{
+			std::sort(
+				m_ActiveEdges.begin(),
+				m_ActiveEdges.end(),
+				[](const EdgeBucket& edgeBucket, const EdgeBucket& otherEdgeBucket) {
+					return edgeBucket.m_XOfYMin < otherEdgeBucket.m_XOfYMin;
+				}
+			);
+
+			for (auto edgeBucket = m_ActiveEdges.begin(); edgeBucket != m_ActiveEdges.end(); ++(++edgeBucket))
+			{
+				auto nextEdgeBucket = std::next(edgeBucket);
+				for (size_t x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
+				{
+					SetPixel(glm::uvec2(x, y + yMinOfPolygon->y), surface.m_Color);
+				}
+				/*if (surface.m_Color == sf::Color(235, 64, 52))
+				{
+					INFO << "From " << edgeBucket->m_XOfYMin << " to " << nextEdgeBucket->m_XOfYMin << '\n';
+				}*/
+			}
+
+			m_ActiveEdges.erase(
+				std::remove_if(
+					m_ActiveEdges.begin(),
+					m_ActiveEdges.end(),
+					[&](EdgeBucket& edgeBucket)
+					{
+						edgeBucket.NextX();
+						return !edgeBucket.IsAlive(y);
+					}
+				),
+				m_ActiveEdges.end()
+			);
+
+			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
+		}
 	}
+
+	m_Texture.update(m_TexturePixels.data());
 }
 
 void ZBufferRenderSystem::Render(entt::registry& registry, sf::RenderWindow& window)
@@ -80,8 +121,8 @@ void ZBufferRenderSystem::Render(entt::registry& registry, sf::RenderWindow& win
 
 ZBufferRenderSystem::EdgeBucketResult ZBufferRenderSystem::GetEdgeBucket(glm::vec3& a, glm::vec3& b)
 {
-	INFO << glm::to_string(a) << '\n';
-	INFO << glm::to_string(b) << '\n';
+	// INFO << glm::to_string(a) << '\n';
+	// INFO << glm::to_string(b) << '\n';
 	EdgeBucketResult result;
 	if (a.y < b.y)
 	{
@@ -93,33 +134,26 @@ ZBufferRenderSystem::EdgeBucketResult ZBufferRenderSystem::GetEdgeBucket(glm::ve
 		result.m_YMin = (size_t)b.y;
 		result.m_XOfYMin = (size_t)b.x;
 	}
-	INFO << "x of y min " << result.m_XOfYMin << " " << result.m_YMin << '\n';
-	result.m_YMax = (size_t)std::max(a.y, b.y);
-	result.m_DX = (size_t)(a.x - b.x);
-	result.m_DY = (size_t)(a.y - b.y);
+	result.m_YMax = std::max((size_t)a.y, (size_t)b.y);
+	result.m_DX = (int)a.x - (int)b.x;
+	result.m_DY = (int)a.y - (int)b.y;
 	if (result.m_DY < 0)
 	{
 		result.m_DY *= -1;
 		result.m_DX *= -1;
 	}
-	INFO << "x of y min " << result.m_XOfYMin << " " << result.m_YMin << '\n';
 	return std::move(result);
 }
 
 void ZBufferRenderSystem::Clear()
 {
 	// Reset ZBuffer
-	for (auto& it = m_ZBuffer.begin(); it != m_ZBuffer.end(); ++it)
+	for (auto it = m_ZBuffer.begin(); it != m_ZBuffer.end(); ++it)
 	{
-		for (auto& it2 = it->begin(); it2 != it->end(); ++it2)
+		for (auto it2 = it->begin(); it2 != it->end(); ++it2)
 		{
 			*it2 = -INFINITY;
 		}
-	}
-
-	for (auto& edgeBuckets: m_SortedEdgeArray)
-	{
-		edgeBuckets.clear();
 	}
 
 	sf::Color clearColor(CLEAR_COLOR);
@@ -134,8 +168,10 @@ void ZBufferRenderSystem::Clear()
 	m_Texture.update(m_TexturePixels.data());
 }
 
-void ZBufferRenderSystem::SetPixel(glm::uvec2& position, sf::Color color)
+void ZBufferRenderSystem::SetPixel(glm::uvec2 const& position, sf::Color color)
 {
+	assert(position.x < WINDOW_WIDTH && "Bruh moment");
+
 	const size_t currentPixelPos = ((size_t)position.x + ((size_t)position.y * WINDOW_WIDTH)) * 4L;
 	m_TexturePixels[currentPixelPos] = color.r;
 	m_TexturePixels[currentPixelPos + 1L] = color.g;

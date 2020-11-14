@@ -23,7 +23,7 @@ public:
 	sf::Sprite m_Sprite;
 	std::array<std::array<float, WINDOW_WIDTH>, WINDOW_HEIGHT> m_ZBuffer;
 	std::array<sf::Uint8, WINDOW_WIDTH * 4 * WINDOW_HEIGHT> m_TexturePixels;
-	std::array<std::vector<EdgeBucket>, WINDOW_HEIGHT> m_SortedEdgeArray;
+	//std::array<std::vector<EdgeBucket>, WINDOW_HEIGHT> m_SortedEdgeArray;
 	std::vector<EdgeBucket> m_ActiveEdges;
 
 	ZBufferRenderSystem();
@@ -45,7 +45,7 @@ public:
 	EdgeBucketResult GetEdgeBucket(glm::vec3& a, glm::vec3& b);
 
 	void Clear();
-	void SetPixel(glm::uvec2& position, sf::Color color);
+	void SetPixel(glm::uvec2 const& position, sf::Color color);
 };
 
 #endif

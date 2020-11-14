@@ -40,7 +40,7 @@ std::vector<SurfaceComponent> Shape3DExample()
 			glm::vec3(-100.0f, 0.0f, 100.0f),
 			glm::vec3(-100.0f, 0.0f, -100.0f),
 			glm::vec3(100.0f, 0.0f, 100.0f),
-			state ? sf::Color::Blue : sf::Color::Blue),
+			state ? sf::Color(235, 64, 52) : sf::Color(107, 19, 13)),
 		// Behind Right Bottom
 		SurfaceComponent(
 			glm::vec3(100.0f, 0.0f, 100.0f),

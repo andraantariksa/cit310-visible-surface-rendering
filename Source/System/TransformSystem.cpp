@@ -21,14 +21,14 @@ void TransformSystem::Reset(entt::registry& registry, entt::entity& entity)
 	transformComponent.m_MatTranslation = glm::mat4(1.0f);
 }
 
-void TransformSystem::Rotate(entt::registry& registry, entt::entity& entity, glm::vec3& rotateVec, float rotationDegree)
+void TransformSystem::Rotate(entt::registry& registry, entt::entity& entity, glm::vec3 const& rotateVec, float rotationDegree)
 {
 	TransformComponent& transformComponent = registry.get<TransformComponent>(entity);
 	transformComponent.m_MatRotation *= glm::rotate(glm::mat4(1.0f), Deg2Rad(rotationDegree), rotateVec);
 	UpdateMatTransform(registry, entity);
 }
 
-void TransformSystem::Translate(entt::registry& registry, entt::entity& entity, glm::vec3& translateVec)
+void TransformSystem::Translate(entt::registry& registry, entt::entity& entity, glm::vec3 const& translateVec)
 {
 	TransformComponent& transformComponent = registry.get<TransformComponent>(entity);
 	transformComponent.m_MatTranslation *= glm::translate(glm::mat4(1.0f), translateVec);

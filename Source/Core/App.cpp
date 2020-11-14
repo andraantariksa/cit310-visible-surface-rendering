@@ -18,10 +18,11 @@ App::App():
     m_ClearColor(CLEAR_COLOR),
     // -1 means not selecting anything
     m_SelectedEntityIdx(-1),
-    m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::Painter),
-    m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod)
+    m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::ZBuffer),
+    m_GUITransformationMethod((int)TransformationMethod::Translation),
+    m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0f)
 {
-	m_Window.setFramerateLimit(15);
+	m_Window.setFramerateLimit(20);
     ImGui::SFML::Init(m_Window);
     ImGui::GetIO().IniFilename = nullptr;
 
@@ -30,7 +31,7 @@ App::App():
     m_Registry.emplace<Shape3DComponent>(*m_Entities[0], Shape3DExample());
     m_Registry.emplace<TransformComponent>(*m_Entities[0]);
 
-    m_SystemTransform.Rotate(m_Registry, *m_Entities[0], glm::vec3(1.0f, 0.0f, 0.0f), 30.0f);
+    m_SystemTransform.Rotate(m_Registry, *m_Entities[0], glm::vec3(1.0f, 0.0f, 0.0f), -90.0f);
     m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::vec3(-50.0f, 0.0f, 0.0f));
 
     m_Entities[1] = std::make_unique<entt::entity>(m_Registry.create());
@@ -69,20 +70,78 @@ void App::Run()
                 {
                     m_SelectedEntityIdx = event.key.code - (int)sf::Keyboard::Num1;
                 }
-                else if (event.key.code <= sf::Keyboard::Escape)
+                else if (event.key.code == sf::Keyboard::Escape)
                 {
                     m_SelectedEntityIdx = -1;
                 }
-                else if (event.key.code >= sf::Keyboard::Left && event.key.code <= sf::Keyboard::Down)
+                else if (event.key.code >= sf::Keyboard::A && event.key.code <= sf::Keyboard::Z)
                 {
                     if (m_SelectedEntityIdx != -1)
                     {
-                        m_SystemTransform.Translate(m_Registry,
-                            *m_Entities[m_SelectedEntityIdx],
-                            glm::vec3(
-                                (event.key.code <= sf::Keyboard::Right ? 1 + 2 * (event.key.code - sf::Keyboard::Left - 1) : 0) * 10.0f,
-                                (event.key.code >= sf::Keyboard::Up ? -1 + -2 * (event.key.code - sf::Keyboard::Up - 1) : 0) * 10.0f,
-                                0.0f));
+                        switch ((TransformationMethod)m_GUITransformationMethod)
+                        {
+                        case TransformationMethod::Translation:
+                        {
+                            glm::vec3 vec(0.0f);
+                            switch (event.key.code)
+                            {
+                            case sf::Keyboard::D:
+                                vec.x += 10.0f;
+                                break;
+                            case sf::Keyboard::A:
+                                vec.x -= 10.0f;
+                                break;
+                            case sf::Keyboard::W:
+                                vec.y += 10.0f;
+                                break;
+                            case sf::Keyboard::S:
+                                vec.y -= 10.0f;
+                                break;
+                            case sf::Keyboard::Q:
+                                vec.z += 10.0f;
+                                break;
+                            case sf::Keyboard::E:
+                                vec.z -= 10.0f;
+                                break;
+                            }
+                            m_SystemTransform.Translate(
+                                m_Registry,
+                                *m_Entities[m_SelectedEntityIdx],
+                                vec
+                            );
+                            break;
+                        }
+                        case TransformationMethod::Rotation:
+                        {
+                            glm::vec3 vec(0.0f);
+                            float angleSign = 1.0f;
+                            switch (event.key.code)
+                            {
+                            case sf::Keyboard::A:
+                                angleSign *= -1.0f;
+                            case sf::Keyboard::D:
+                                vec.y += 1.0f;
+                                break;
+                            case sf::Keyboard::S:
+                                angleSign *= -1.0f;
+                            case sf::Keyboard::W:
+                                vec.x += 1.0f;
+                                break;
+                            case sf::Keyboard::Q:
+                                angleSign *= -1.0f;
+                            case sf::Keyboard::E:
+                                vec.z += 1.0f;
+                                break;
+                            }
+                            m_SystemTransform.Rotate(
+                                m_Registry,
+                                *m_Entities[m_SelectedEntityIdx],
+                                vec,
+                                10.0f * angleSign
+                            );
+                            break;
+                        }
+                        };
                         m_SystemRender.Update(m_Registry);
                     }
                 }
@@ -114,6 +173,14 @@ void App::UpdateInterface()
             m_GUIRenderMethod = renderMethod;
 
             m_SystemRender.ChangeRenderMethod(m_Registry, (BaseRenderSystem::RenderMethod)m_GUIRenderMethod);
+        }
+
+        int transformationMethod = m_GUITransformationMethod;
+        ImGui::RadioButton("Translation", &transformationMethod, (int)TransformationMethod::Translation);
+        ImGui::RadioButton("Rotation", &transformationMethod, (int)TransformationMethod::Rotation);
+        if (m_GUITransformationMethod != transformationMethod)
+        {
+            m_GUITransformationMethod = transformationMethod;
         }
     }
     ImGui::End();

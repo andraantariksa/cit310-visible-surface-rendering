@@ -20,7 +20,7 @@ size_t EdgeBucket::NextX()
 	return m_XOfYMin;
 }
 
-bool EdgeBucket::IsAlive(size_t y_pos)
+bool EdgeBucket::IsAlive(size_t yPos)
 {
-	return y_pos < m_YMax;
+	return yPos < m_YMax;
 }
