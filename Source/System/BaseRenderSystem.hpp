@@ -16,6 +16,11 @@
 class BaseRenderSystem
 {
 public:
+	// Careful. Use a lot of stack memory
+	sf::Texture m_Texture;
+	sf::Sprite m_Sprite;
+	std::array<sf::Uint8, WINDOW_WIDTH * 4 * WINDOW_HEIGHT> m_TexturePixels;
+
 	TransformSystem m_SystemTransform;
 	ZBufferRenderSystem m_SystemZBufferRender;
 	PainterRenderSystem m_SystemPainterRender;
@@ -36,7 +41,6 @@ public:
 	glm::mat4 m_MatTransform;
 	glm::mat4 m_MatWCSToVCS;
 	glm::mat4 m_MatVCSToSCS;
-	glm::mat4 m_MatVCSToSCSWithZ;
 
 	Camera m_Camera;
 
@@ -57,6 +61,11 @@ public:
 	glm::vec4 TransformWCSToVCS(const glm::vec4& v);
 	glm::vec4 TransformWCSToSCS(const glm::vec4& v);
 	glm::vec4 TransformOCSToWCS(const glm::vec4& v, const TransformComponent& transform);
+
+	void TextureClear();
+	void TextureSetPixel(const glm::ivec2& position, const sf::Color& color);
+
+	void Print();
 };
 
 #endif

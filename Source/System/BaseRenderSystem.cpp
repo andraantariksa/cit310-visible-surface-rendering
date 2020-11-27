@@ -22,6 +22,10 @@ BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, float vanishingPoi
 	// Painter as the default because it's the first one I made :p
 	m_RenderMethod(renderMethod)
 {
+	m_Texture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
+	m_Sprite.setTexture(m_Texture);
+	TextureClear();
+
 	const float scaleX = 1.0f;
 	const float scaleY = 1.0f;
 	const float translateX = (float)WINDOW_WIDTH / 2;
@@ -89,10 +93,10 @@ void BaseRenderSystem::Render(entt::registry& registry, sf::RenderWindow& window
 	case BaseRenderSystem::RenderMethod::None:
 		break;
 	case BaseRenderSystem::RenderMethod::Painter:
-		m_SystemPainterRender.Render(registry, window);
+		m_SystemPainterRender.Render(registry, *this, window);
 		break;
 	case BaseRenderSystem::RenderMethod::ZBuffer:
-		m_SystemZBufferRender.Render(registry, window);
+		m_SystemZBufferRender.Render(registry, *this, window);
 		break;
 	default:
 		break;
@@ -119,8 +123,8 @@ bool BaseRenderSystem::IsSurfaceIsBackFaceCulled(const SurfaceComponent& surface
 
 sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::vec4& v)
 {
-	const glm::vec2 vertex = v;
-	return sf::Vector2f(vertex.x, vertex.y);
+	assert(v.w != 0.0f && "Uh oh w is 0");
+	return sf::Vector2f(v.x / v.w, v.y / v.w);
 }
 
 glm::vec4 BaseRenderSystem::TransformVCSToSCS(const glm::vec4& v)
@@ -134,13 +138,16 @@ glm::vec4 BaseRenderSystem::TransformWCSToVCS(const glm::vec4& v)
 {
 	const auto result = m_MatWCSToVCS * v;
 	assert(result.w != 0.0f && "Uh oh w is 0");
+	const auto x = result.x / result.w;
+	const auto y = result.y / result.w;
+	assert(x == x && "Uh oh infinity");
+	assert(y == y && "Uh oh infinity");
 	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
-	//return m_MatWCSToVCS * v;
 }
 
 glm::vec4 BaseRenderSystem::TransformWCSToSCS(const glm::vec4& v)
 {
-	return glm::vec4();
+	return TransformVCSToSCS(TransformWCSToVCS(v));
 }
 
 glm::vec4 BaseRenderSystem::TransformOCSToWCS(const glm::vec4& v, const TransformComponent& transform)
@@ -149,3 +156,48 @@ glm::vec4 BaseRenderSystem::TransformOCSToWCS(const glm::vec4& v, const Transfor
 	assert(result.w != 0.0f && "Uh oh w is 0");
 	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
 }
+
+
+void BaseRenderSystem::TextureClear()
+{
+	sf::Color clearColor(CLEAR_COLOR);
+	for (size_t currentPixelPos = 0; currentPixelPos < WINDOW_WIDTH * WINDOW_HEIGHT * 4; currentPixelPos += 4)
+	{
+		m_TexturePixels[currentPixelPos] = clearColor.r;
+		m_TexturePixels[currentPixelPos + 1] = clearColor.g;
+		m_TexturePixels[currentPixelPos + 2] = clearColor.b;
+		m_TexturePixels[currentPixelPos + 3] = clearColor.a;
+	}
+}
+
+void BaseRenderSystem::TextureSetPixel(const glm::ivec2& position, const sf::Color& color)
+{
+	if (position.x >= WINDOW_WIDTH || position.y >= WINDOW_HEIGHT ||
+		position.x < 0 || position.y < 0)
+	{
+		return;
+	}
+
+	const size_t currentPixelPos = ((size_t)position.x + ((size_t)position.y * WINDOW_WIDTH)) * 4L;
+	m_TexturePixels[currentPixelPos] = color.r;
+	m_TexturePixels[currentPixelPos + 1L] = color.g;
+	m_TexturePixels[currentPixelPos + 2L] = color.b;
+	m_TexturePixels[currentPixelPos + 3L] = color.a;
+}
+
+void BaseRenderSystem::Print()
+{
+	switch (m_RenderMethod)
+	{
+	case BaseRenderSystem::RenderMethod::None:
+		break;
+	case BaseRenderSystem::RenderMethod::Painter:
+		m_SystemPainterRender.PrintBinaryPartitioningTree();
+		break;
+	case BaseRenderSystem::RenderMethod::ZBuffer:
+		break;
+	default:
+		break;
+	}
+}
+

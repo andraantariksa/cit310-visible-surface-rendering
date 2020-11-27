@@ -19,11 +19,7 @@ class BaseRenderSystem;
 class ZBufferRenderSystem
 {
 public:
-	sf::Texture m_Texture;
-	sf::Sprite m_Sprite;
 	std::array<std::array<float, WINDOW_WIDTH>, WINDOW_HEIGHT> m_ZBuffer;
-	std::array<sf::Uint8, WINDOW_WIDTH * 4 * WINDOW_HEIGHT> m_TexturePixels;
-	//std::array<std::vector<EdgeBucket>, WINDOW_HEIGHT> m_SortedEdgeArray;
 	std::vector<EdgeBucket> m_ActiveEdges;
 
 	ZBufferRenderSystem();
@@ -31,23 +27,21 @@ public:
 
 	void Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<SurfaceComponent>& surfacesVCS);
 
-	void Render(entt::registry& registry, sf::RenderWindow& window);
+	void Render(entt::registry& registry, BaseRenderSystem& baseRenderSystem, sf::RenderWindow& window);
+
+	void ResetZBuffer();
 
 	class EdgeBucketResult
 	{
 	public:
-		size_t m_YMin;
-		size_t m_YMax;
-		size_t m_XOfYMin;
+		int m_YMin;
+		int m_YMax;
+		int m_XOfYMin;
 		int m_DX;
 		int m_DY;
 		float m_ZOfYMin;
 	};
 	EdgeBucketResult GetEdgeBucket(glm::vec3& a, glm::vec3& b);
-
-	void Clear();
-
-	void SetPixel(glm::uvec2 const& position, sf::Color color, float z);
 };
 
 #endif

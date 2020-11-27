@@ -10,3 +10,6 @@
 [submodule "Lib/glm"]
 	path = Lib/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "graphviz"]
+	path = Lib/graphviz
+	url = https://gitlab.com/graphviz/graphviz.git

@@ -4,8 +4,8 @@
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 
-#define WARN (std::cout << "[WARN] ")
+#define WARN (std::cerr << "[WARN] ")
 #define INFO (std::cout << "[INFO] ")
-#define ERROR (std::cout << "[ERROR] ")
+#define ERROR (std::cerr << "[ERROR] ")
 
 #endif
