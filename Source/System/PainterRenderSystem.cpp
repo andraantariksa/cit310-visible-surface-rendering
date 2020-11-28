@@ -21,8 +21,8 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 {
 	baseRenderSystem.TextureClear();
 	m_CachedSurfaces2D.clear();
-
 	m_BinaryPartitioningTree.Clear();
+
 	m_BinaryPartitioningTree.Construct(surfacesVCS);
 
 	std::function<void(std::vector<SurfaceComponent>&)> traverseLambda = [&](std::vector<SurfaceComponent>& surfaces) -> void {
@@ -65,6 +65,7 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 			}
 
 			auto [result, yMin] = GetEdgeBucket(prev, current);
+			result.m_YMax -= (int)yMinOfPolygon->y;
 			sortedEdgeArray[yMin - (int)yMinOfPolygon->y].push_back(
 				std::move(result)
 			);
@@ -87,10 +88,10 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 			{
 				auto nextEdgeBucket = std::next(edgeBucket);
 
-				if (nextEdgeBucket == m_ActiveEdges.end())
+				/*if (nextEdgeBucket == m_ActiveEdges.end())
 				{
 					break;
-				}
+				}*/
 
 				for (int x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
 				{
@@ -110,7 +111,7 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					}
 				),
 				m_ActiveEdges.end()
-						);
+			);
 
 			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
 		}
@@ -121,7 +122,8 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 void PainterRenderSystem::Render(entt::registry& registry, BaseRenderSystem& baseRenderSystem, sf::RenderWindow& window)
 {
-	sf::VertexArray vertArray(sf::Triangles);
+	window.draw(baseRenderSystem.m_Sprite);
+	/*sf::VertexArray vertArray(sf::Triangles);
 	for (auto& surface : m_CachedSurfaces2D)
 	{
 		vertArray.append(
@@ -137,13 +139,13 @@ void PainterRenderSystem::Render(entt::registry& registry, BaseRenderSystem& bas
 				sf::Vector2f(surface.m_Vertices[2].x, surface.m_Vertices[2].y), surface.m_Color
 			));
 	}
-	window.draw(vertArray);
+	window.draw(vertArray);*/
 }
 
 void PainterRenderSystem::PrintBinaryPartitioningTree()
 {
 	GVC_t* gvc = gvContext();
-	gvAddLibrary(gvc, &gvplugin_dot_layout_LTX_library);
+	//gvAddLibrary(gvc, &gvplugin_dot_layout_LTX_library);
 	assert(gvc);
 	Agraph_t* graph = agopen((char*)"BSP Tree", Agdirected, nullptr);
 	assert(graph);

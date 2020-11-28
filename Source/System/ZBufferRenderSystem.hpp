@@ -31,17 +31,7 @@ public:
 
 	void ResetZBuffer();
 
-	class EdgeBucketResult
-	{
-	public:
-		int m_YMin;
-		int m_YMax;
-		int m_XOfYMin;
-		int m_DX;
-		int m_DY;
-		float m_ZOfYMin;
-	};
-	EdgeBucketResult GetEdgeBucket(glm::vec3& a, glm::vec3& b);
+	std::tuple<EdgeBucket, int> GetEdgeBucket(glm::vec3& a, glm::vec3& b);
 };
 
 #endif

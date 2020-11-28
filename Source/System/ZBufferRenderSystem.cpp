@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <tuple>
 #include <glm/gtx/string_cast.hpp>
 
 #include "BaseRenderSystem.hpp"
@@ -63,16 +64,10 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 				continue;
 			}
 
-			ZBufferRenderSystem::EdgeBucketResult result = GetEdgeBucket(prev, current);
-			sortedEdgeArray[result.m_YMin - (int)yMinOfPolygon->y].push_back(
-				EdgeBucket{
-					.m_YMax = result.m_YMax - (int)yMinOfPolygon->y,
-					.m_XOfYMin = result.m_XOfYMin,
-					.m_DX = result.m_DX,
-					.m_DY = result.m_DY,
-					.m_Carry = 0,
-					.m_ZOfYMin = result.m_ZOfYMin
-				}
+			auto [result, yMin] = GetEdgeBucket(prev, current);
+			result.m_YMax -= (int)yMinOfPolygon->y;
+			sortedEdgeArray[yMin - (int)yMinOfPolygon->y].push_back(
+				std::move(result)
 			);
 
 			prev = current;
@@ -92,15 +87,24 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 			for (auto edgeBucket = m_ActiveEdges.begin(); edgeBucket != m_ActiveEdges.end(); ++(++edgeBucket))
 			{
 				auto nextEdgeBucket = std::next(edgeBucket);
-				
+
+				/*if (nextEdgeBucket == m_ActiveEdges.end())
+				{
+					break;
+				}*/
+
 				float z = edgeBucket->m_ZOfYMin;
 				for (int x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
 				{
 					const auto position = glm::ivec2(x, y + (int)yMinOfPolygon->y);
-					if (z > m_ZBuffer[position.y][position.x])
+					if (!(position.x >= WINDOW_WIDTH || position.y >= WINDOW_HEIGHT ||
+						position.x < 0 || position.y < 0))
 					{
-						baseRenderSystem.TextureSetPixel(position, surface.m_Color);
-						m_ZBuffer[position.y][position.x] = z;
+						if (z > m_ZBuffer[position.y][position.x])
+						{
+							baseRenderSystem.TextureSetPixel(position, surface.m_Color);
+							m_ZBuffer[position.y][position.x] = z;
+						}
 					}
 					z += dZX;
 				}
@@ -143,28 +147,29 @@ void ZBufferRenderSystem::ResetZBuffer()
 	}
 }
 
-ZBufferRenderSystem::EdgeBucketResult ZBufferRenderSystem::GetEdgeBucket(glm::vec3& a, glm::vec3& b)
+std::tuple<EdgeBucket, int> ZBufferRenderSystem::GetEdgeBucket(glm::vec3& a, glm::vec3& b)
 {
-	EdgeBucketResult result;
+	EdgeBucket edgeBucket;
+	int yMin;
 	if (a.y < b.y)
 	{
-		result.m_YMin = (int)a.y;
-		result.m_XOfYMin = (int)a.x;
-		result.m_ZOfYMin = a.z;
+		yMin = (int)a.y;
+		edgeBucket.m_XOfYMin = (int)a.x;
+		edgeBucket.m_ZOfYMin = a.z;
 	}
 	else
 	{
-		result.m_YMin = (int)b.y;
-		result.m_XOfYMin = (int)b.x;
-		result.m_ZOfYMin = b.z;
+		yMin = (int)b.y;
+		edgeBucket.m_XOfYMin = (int)b.x;
+		edgeBucket.m_ZOfYMin = b.z;
 	}
-	result.m_YMax = std::max((int)a.y, (int)b.y);
-	result.m_DX = (int)a.x - (int)b.x;
-	result.m_DY = (int)a.y - (int)b.y;
-	if (result.m_DY < 0)
+	edgeBucket.m_YMax = (int)std::max(a.y, b.y);
+	edgeBucket.m_DX = (int)a.x - (int)b.x;
+	edgeBucket.m_DY = (int)a.y - (int)b.y;
+	if (edgeBucket.m_DY < 0)
 	{
-		result.m_DY *= -1;
-		result.m_DX *= -1;
+		edgeBucket.m_DY *= -1;
+		edgeBucket.m_DX *= -1;
 	}
-	return std::move(result);
+	return std::move(std::tuple<EdgeBucket, int>({ edgeBucket, yMin }));
 }

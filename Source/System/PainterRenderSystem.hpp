@@ -15,7 +15,7 @@
 #include "../Misc/EdgeBucket.hpp"
 #include "../Misc/BinaryTreePartitioning.hpp"
 
-extern gvplugin_library_t gvplugin_dot_layout_LTX_library;
+//extern gvplugin_library_t gvplugin_dot_layout_LTX_library;
 
 // Forward declaration
 class BaseRenderSystem;

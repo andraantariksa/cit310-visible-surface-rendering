@@ -13,7 +13,7 @@ class DotResult
 {
 public:
 	size_t m_Idx;
-	double m_Dot;
+	float m_Dot;
 };
 
 class BinaryTreePartitioning
@@ -28,8 +28,8 @@ public:
 	BinaryTreePartitioning() = default;
 	~BinaryTreePartitioning() = default;
 
-	BinaryTreePartitioning(std::vector<SurfaceComponent>& surface);
-	void Construct(std::vector<SurfaceComponent>&surface);
+	BinaryTreePartitioning(const std::vector<SurfaceComponent>& surface);
+	void Construct(const std::vector<SurfaceComponent>&surface);
 	void Clear();
 
 	void Traverse(std::function<void(std::vector<SurfaceComponent>&)>& f);

@@ -2,6 +2,11 @@
 
 #include <cmath>
 
+EdgeBucket::EdgeBucket() :
+	m_Carry(0)
+{
+}
+
 void EdgeBucket::NextX(float A, float B, float C)
 {
 	m_Carry += std::abs(m_DX);
@@ -24,6 +29,11 @@ void EdgeBucket::NextX(float A, float B, float C)
 bool EdgeBucket::IsAlive(int yPos)
 {
 	return yPos < m_YMax;
+}
+
+EdgeBucket2::EdgeBucket2():
+	m_Carry(0)
+{
 }
 
 void EdgeBucket2::NextX()
