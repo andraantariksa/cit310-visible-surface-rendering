@@ -2,11 +2,15 @@
 
 #include <glm/glm.hpp>
 #include <tuple>
-#include <graphviz/gvc.h>
-#include <graphviz/cgraph.h>
-#include <graphviz/gvplugin.h>
+#include <ogdf/basic/GraphAttributes.h>
+#include <ogdf/fileformats/GraphIO.h>
+#include <ogdf/layered/MedianHeuristic.h>
+#include <ogdf/layered/OptimalHierarchyLayout.h>
+#include <ogdf/layered/OptimalRanking.h>
+#include <ogdf/layered/SugiyamaLayout.h>
 #include <sstream>
 #include <cstdio>
+#include <fstream>
 
 #include "BaseRenderSystem.hpp"
 #include "../Component/TransformComponent.hpp"
@@ -30,9 +34,9 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 		{
 			m_CachedSurfaces2D.push_back(
 				SurfaceComponent(
-					baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[0], 1.0f)),
-					baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[1], 1.0f)),
-					baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[2], 1.0f)),
+					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[0], 1.0)),
+					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[1], 1.0)),
+					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[2], 1.0)),
 					surface.m_Color)
 			);
 		}
@@ -46,7 +50,7 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 		auto [yMinOfPolygon, yMaxOfPolygon] = std::minmax_element(
 			surface.m_Vertices.begin(),
 			surface.m_Vertices.end(),
-			[](glm::vec3& coord, glm::vec3& anotherCoord) {
+			[](glm::dvec3& coord, glm::dvec3& anotherCoord) {
 				return coord.y < anotherCoord.y;
 			}
 		);
@@ -55,8 +59,8 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 		std::vector<std::vector<EdgeBucket2>> sortedEdgeArray(yMaxOfPolygon->y - yMinOfPolygon->y + 1);
 
 		// Traverse on edge
-		glm::vec3 prev = *std::prev(surface.m_Vertices.end());
-		for (glm::vec3 current : surface.m_Vertices)
+		glm::dvec3 prev = *std::prev(surface.m_Vertices.end());
+		for (glm::dvec3 current : surface.m_Vertices)
 		{
 			if ((int)prev.y - (int)current.y == 0)
 			{
@@ -75,6 +79,20 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 		for (int y = 0; y < sortedEdgeArray.size(); ++y)
 		{
+			m_ActiveEdges.erase(
+				std::remove_if(
+					m_ActiveEdges.begin(),
+					m_ActiveEdges.end(),
+					[&](EdgeBucket2& edgeBucket)
+					{
+						edgeBucket.NextX();
+						return !edgeBucket.IsAlive(y);
+					}
+				),
+				m_ActiveEdges.end());
+
+			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
+
 			std::sort(
 				m_ActiveEdges.begin(),
 				m_ActiveEdges.end(),
@@ -99,21 +117,6 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					baseRenderSystem.TextureSetPixel(position, surface.m_Color);
 				}
 			}
-
-			m_ActiveEdges.erase(
-				std::remove_if(
-					m_ActiveEdges.begin(),
-					m_ActiveEdges.end(),
-					[&](EdgeBucket2& edgeBucket)
-					{
-						edgeBucket.NextX();
-						return !edgeBucket.IsAlive(y);
-					}
-				),
-				m_ActiveEdges.end()
-			);
-
-			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
 		}
 	}
 
@@ -144,26 +147,55 @@ void PainterRenderSystem::Render(entt::registry& registry, BaseRenderSystem& bas
 
 void PainterRenderSystem::PrintBinaryPartitioningTree()
 {
-	GVC_t* gvc = gvContext();
-	//gvAddLibrary(gvc, &gvplugin_dot_layout_LTX_library);
-	assert(gvc);
-	Agraph_t* graph = agopen((char*)"BSP Tree", Agdirected, nullptr);
-	assert(graph);
+	ogdf::Graph graph;
+	ogdf::GraphAttributes graphAtt(graph,
+		ogdf::GraphAttributes::nodeGraphics |
+		ogdf::GraphAttributes::edgeGraphics |
+		ogdf::GraphAttributes::nodeLabel    |
+		ogdf::GraphAttributes::edgeLabel    |
+		ogdf::GraphAttributes::nodeStyle);
 
-	INFO << "Print BSP\n";
-	m_BinaryPartitioningTree.GetCGraphTree(graph);
+	//std::vector<std::pair<int, int>> rank;
+	//m_BinaryPartitioningTree.GetCGraphTree(graph, graphAtt, rank);
 
-	assert(gvLayout(gvc, graph, "dot"));
-	// Save as PNG
-	assert(gvRender(gvc, graph, "png", fopen("result.png", "w")));
-	// Free the memory
-	gvFreeLayout(gvc, graph);
-	agclose(graph);
+	//ogdf::NodeArray<int> nodeRank(graph);
+	//for (auto& v: rank)
+	//	nodeRank[v.first] = v.second;
 
-	gvFreeContext(gvc);
+	//ogdf::SugiyamaLayout SL;
+ //   //SL.setRanking(new ogdf::OptimalRanking);
+ //   SL.setCrossMin(new ogdf::MedianHeuristic);
+	//SL.arrangeCCs(false);
+
+	//ogdf::OptimalHierarchyLayout *ohl = new ogdf::OptimalHierarchyLayout;
+ //   ohl->layerDistance(30.0);
+ //   ohl->nodeDistance(25.0);
+ //   ohl->weightBalancing(0.8);
+ //   SL.setLayout(ohl);
+ //
+ //   SL.call(graphAtt, nodeRank);
+
+	m_BinaryPartitioningTree.GetCGraphTree(graph, graphAtt);
+
+	ogdf::SugiyamaLayout SL;
+	SL.setRanking(new ogdf::OptimalRanking);
+	SL.setCrossMin(new ogdf::MedianHeuristic);
+
+	ogdf::OptimalHierarchyLayout* ohl = new ogdf::OptimalHierarchyLayout;
+	ohl->layerDistance(30.0);
+	ohl->nodeDistance(25.0);
+	ohl->weightBalancing(0.8);
+	SL.setLayout(ohl);
+
+	SL.call(graphAtt);
+
+	ogdf::GraphIO::SVGSettings svgSettings;
+	//svgSettings.fontSize(3);
+	std::fstream file("result.svg", std::ios::out);
+	ogdf::GraphIO::drawSVG(graphAtt, file, svgSettings);
 }
 
-std::tuple<EdgeBucket2, int> PainterRenderSystem::GetEdgeBucket(glm::vec3& a, glm::vec3& b)
+std::tuple<EdgeBucket2, int> PainterRenderSystem::GetEdgeBucket(glm::dvec3& a, glm::dvec3& b)
 {
 	EdgeBucket2 edgeBucket;
 	int yMin;

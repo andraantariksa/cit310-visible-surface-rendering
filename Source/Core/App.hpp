@@ -26,6 +26,8 @@ private:
 		Translation
 	};
 	int m_GUITransformationMethod;
+	bool m_GUIWindowTips;
+	float m_GUITransformStep;
 
 	// System
 	BaseRenderSystem m_SystemRender;

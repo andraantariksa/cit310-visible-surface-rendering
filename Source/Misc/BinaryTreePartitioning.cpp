@@ -1,76 +1,73 @@
 #include "BinaryTreePartitioning.hpp"
 
+#include <utility>
 #include <glm/glm.hpp>
 #include <algorithm>
 #include <glm/glm.hpp>
 #include <sstream>
-#include <graphviz/gvc.h>
-#include <graphviz/cgraph.h>
 #include <limits>
+#include <type_traits>
+#include <algorithm>
+#include <ogdf/basic/Graph.h>
+#include <ogdf/fileformats/GraphIO.h>
 
 #include "../Component/SurfaceComponent.hpp"
 #include "../Core/Camera.hpp"
 #include "../Util/Logger.hpp"
 
-static float LineIntersection(const glm::vec3& from, const glm::vec3& to, const glm::vec3& arbitraryPointOnPlane, const glm::vec3& normal)
-{
-	float denominator = glm::dot(to - from, normal);
-	assert(denominator != 0.0f && "Uh oh cross(to - from, normal) is 0");
-	return glm::dot(arbitraryPointOnPlane - from, normal) / denominator;
-}
+//template <typename T>
+//static bool eq(T a, T b) {
+//	return std::fabs(a - b) <= std::numeric_limits<T>::epsilon();
+//}
 
-static glm::vec3 LineParametric(const glm::vec3& from, const glm::vec3& to, const float percentage)
+template<class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
+eq(T x, T y, int ulp=5)
 {
-	return glm::vec3(
-		from.x + percentage * (to.x - from.x),
-		from.y + percentage * (to.y - from.y),
-		from.z + percentage * (to.z - from.z)
-	);
+	// the machine epsilon has to be scaled to the magnitude of the values used
+	// and multiplied by the desired precision in ULPs (units in the last place)
+	return std::fabs(x - y) <= std::numeric_limits<T>::epsilon() * std::fabs(x + y) * ulp
+		// unless the result is subnormal
+		|| std::fabs(x - y) < std::numeric_limits<T>::min();
 }
 
 template <typename T>
-static bool eq(T a, T b) {
-	T e = std::numeric_limits<T>::epsilon();
-	return std::fabs(a - b) <= e;
-}
-
-template <typename T>
-bool lt(T a, T b) {
-	if (!eq(a, b))
-	{
-		return a < b;
-	}
-	return false;
+bool lt(T a, T b, T epsilon=std::numeric_limits<T>::epsilon()) {
+	return (b - a) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
 template <typename T>
 bool lte(T a, T b) {
-	if (eq(a, b))
-	{
-		return true;
-	}
-	return a < b;
+	return eq(a, b) || lt(a, b);
 }
 
 template <typename T>
-bool gt(T a, T b) {
-	if (!eq(a, b))
-	{
-		return a > b;
-	}
-	return false;
+bool gt(T a, T b, T epsilon = std::numeric_limits<T>::epsilon()) {
+	return (a - b) > ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
 template <typename T>
 bool gte(T a, T b) {
-	if (eq(a, b))
-	{
-		return true;
-	}
-	return a > b;
+	return eq(a, b) || gt(a, b);
 }
 
+static double LineIntersection(const glm::dvec3& from, const glm::dvec3& to, const glm::dvec3& arbitraryPointOnPlane, const glm::dvec3& normal)
+{
+	double denominator = glm::dot(to - from, normal);
+	assert(denominator != 0.0 && "Uh oh cross(to - from, normal) is 0");
+	double result = glm::dot(arbitraryPointOnPlane - from, normal) / denominator;
+	//if (gte(result, 0.0) && lte(result, 1.0))
+	//{
+	result = glm::clamp(result, 0.0, 1.0);
+	//}
+	assert(result >= 0.0 && result <= 1.0 && "Out of bound result");
+	return result;
+}
 
+static glm::dvec3 LineParametric(const glm::dvec3& from, const glm::dvec3& to, const double percentage)
+{
+	return from + percentage * (to - from);
+}
 
 BinaryTreePartitioning::BinaryTreePartitioning(const std::vector<SurfaceComponent>& surfaces)
 {
@@ -79,20 +76,21 @@ BinaryTreePartitioning::BinaryTreePartitioning(const std::vector<SurfaceComponen
 
 void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surfaces)
 {
-	// ???
-	//Camera camera;
-
-	assert(surfaces.size() != 0 && "BSP with 0 surface");
+	//assert(surfaces.size() != 0 && "BSP with 0 surface");
+	if (surfaces.size() == 0)
+	{
+		return;
+	}
 
 	// First surface as the reference surface
-	const SurfaceComponent& referenceSurface = surfaces[0];
-	const glm::vec3& referenceVertex = referenceSurface.m_Vertices[0];
+	const SurfaceComponent referenceSurface = surfaces[0];
+	const glm::dvec3& referenceVertex = referenceSurface.m_Vertices[0];
 	m_Surfaces.push_back(referenceSurface);
-	glm::vec3 referenceSurfaceNormal = glm::cross(
+	glm::dvec3 referenceSurfaceNormal = glm::cross(
 		referenceSurface.m_Vertices[1] - referenceSurface.m_Vertices[0],
 		referenceSurface.m_Vertices[2] - referenceSurface.m_Vertices[1]);
 
-	if (!(glm::dot(referenceSurfaceNormal, glm::vec3(0.0f, 0.0f, -1.0)) < 0.0f))
+	if (!(glm::dot(referenceSurfaceNormal, Camera::Direction) < 0.0))
 	{
 		referenceSurfaceNormal = glm::cross(
 			referenceSurface.m_Vertices[1] - referenceSurface.m_Vertices[2],
@@ -108,12 +106,16 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 	{
 		// Traverse on the polygon vertices (Because it's a triangle then the total vertex is 3)
 		std::array<DotResult, 3> dotProductResults;
-		for (size_t ithVertex = 0; ithVertex < it->m_Vertices.size(); ++ithVertex)
+		for (size_t ithVertex = 0; ithVertex < 3; ++ithVertex)
 		{
 			dotProductResults[ithVertex].m_Idx = ithVertex;
 			dotProductResults[ithVertex].m_Dot = glm::dot(
 				referenceSurfaceNormal,
 				it->m_Vertices[ithVertex] - referenceVertex);
+			
+			char sz[64];
+			sprintf(sz, "%.7lf\n", dotProductResults[ithVertex].m_Dot);
+			dotProductResults[ithVertex].m_Dot = atof(sz);
 		}
 		std::sort(
 			dotProductResults.begin(),
@@ -126,12 +128,12 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 
 		// # Cases
 		// Coplanar and front
-		if (gte(dotProductResults[0].m_Dot, 0.0f) && gte(dotProductResults[1].m_Dot, 0.0f) && gte(dotProductResults[2].m_Dot, 0.0f))
+		if (gte(dotProductResults[0].m_Dot, 0.0) && gte(dotProductResults[1].m_Dot, 0.0) && gte(dotProductResults[2].m_Dot, 0.0))
 		{
 			frontSideSurfaces.push_back(*it);
 		}
 		// Back
-		else if (lt(dotProductResults[0].m_Dot, 0.0f) && lte(dotProductResults[1].m_Dot, 0.0f) && lte(dotProductResults[2].m_Dot, 0.0f))
+		else if (lt(dotProductResults[0].m_Dot, 0.0) && lte(dotProductResults[1].m_Dot, 0.0) && lte(dotProductResults[2].m_Dot, 0.0))
 		{
 			backSideSurfaces.push_back(*it);
 		}
@@ -139,25 +141,25 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 		// Fix the circular painter algorithm
 		// The rest of the control flows create a circular surface
 		// Intersect
-		else if (lt(dotProductResults[0].m_Dot, 0.0f) && lt(dotProductResults[1].m_Dot, 0.0f) && gt(dotProductResults[2].m_Dot, 0.0f))
+		else if (lt(dotProductResults[0].m_Dot, 0.0) && lt(dotProductResults[1].m_Dot, 0.0) && gt(dotProductResults[2].m_Dot, 0.0))
 		{
-			glm::vec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
-			glm::vec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
-			glm::vec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
-			glm::vec3 d = LineParametric(
-				dA,
+			glm::dvec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
+			glm::dvec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
+			glm::dvec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
+			glm::dvec3 d = LineParametric(
 				dC,
+				dA,
 				LineIntersection(
-					dA,
 					dC,
+					dA,
 					referenceVertex,
 					referenceSurfaceNormal));
-			glm::vec3 e = LineParametric(
-				dB,
+			glm::dvec3 e = LineParametric(
 				dC,
+				dB,
 				LineIntersection(
-					dB,
 					dC,
+					dB,
 					referenceVertex,
 					referenceSurfaceNormal));
 
@@ -186,26 +188,26 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 		}
-		else if (lt(dotProductResults[0].m_Dot, 0.0f) && gt(dotProductResults[1].m_Dot, 0.0f) && gt(dotProductResults[2].m_Dot, 0.0f))
+		else if (lt(dotProductResults[0].m_Dot, 0.0) && gt(dotProductResults[1].m_Dot, 0.0) && gt(dotProductResults[2].m_Dot, 0.0))
 		{
-			glm::vec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
-			glm::vec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
-			glm::vec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
+			glm::dvec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
+			glm::dvec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
+			glm::dvec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
 
-			glm::vec3 d = LineParametric(
-				dA,
+			glm::dvec3 d = LineParametric(
 				dC,
+				dA,
 				LineIntersection(
-					dA,
 					dC,
+					dA,
 					referenceVertex,
 					referenceSurfaceNormal));
-			glm::vec3 e = LineParametric(
-				dA,
+			glm::dvec3 e = LineParametric(
 				dB,
+				dA,
 				LineIntersection(
-					dA,
 					dB,
+					dA,
 					referenceVertex,
 					referenceSurfaceNormal));
 
@@ -234,18 +236,18 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 		}
-		else if (lt(dotProductResults[0].m_Dot, 0.0f) && eq(dotProductResults[1].m_Dot, 0.0f) && gt(dotProductResults[2].m_Dot, 0.0f))
+		else if (lt(dotProductResults[0].m_Dot, 0.0) && eq(dotProductResults[1].m_Dot, 0.0) && gt(dotProductResults[2].m_Dot, 0.0))
 		{
-			glm::vec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
-			glm::vec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
-			glm::vec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
+			glm::dvec3 dA = it->m_Vertices[dotProductResults[0].m_Idx];
+			glm::dvec3 dB = it->m_Vertices[dotProductResults[1].m_Idx];
+			glm::dvec3 dC = it->m_Vertices[dotProductResults[2].m_Idx];
 
-			glm::vec3 d = LineParametric(
-				dA,
+			glm::dvec3 d = LineParametric(
 				dC,
+				dA,
 				LineIntersection(
-					dA,
 					dC,
+					dA,
 					referenceVertex,
 					referenceSurfaceNormal));
 
@@ -294,34 +296,59 @@ void BinaryTreePartitioning::Traverse(std::function<void(std::vector<SurfaceComp
 	}
 }
 
-Agnode_t* BinaryTreePartitioning::GetCGraphTree(Agraph_t* graph)
+//void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, std::vector<std::pair<int, int>>& rank, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir, int depth)
+void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir)
 {
-	INFO << "Graph\n";
-	Agnode_t* currentNode;
+	/*std::stringstream ss;
+	ogdf::node currentLevelNode = graph.newNode();
+	graphAtt.strokeColor(currentLevelNode) = ogdf::Color(255, 0, 0);
+	rank.push_back(std::make_pair(currentLevelNode->index(), depth));
 
-	std::stringstream ss;
 	for (auto& surface : m_Surfaces)
 	{
-		ss << surface.m_Color.r << ", " << surface.m_Color.g << ", " << surface.m_Color.b << " | ";
+		ss << "a";
+
+		ogdf::node currentNode = graph.newNode();
+		graphAtt.fillColor(currentNode) = ogdf::Color(surface.m_Color.r, surface.m_Color.g, surface.m_Color.b);
+		graphAtt.label(currentNode) = ss.str();
+		rank.push_back(std::make_pair(currentNode->index(), depth));
+		ss.clear();
+
+		ogdf::edge edgeParentToCurrent = graph.newEdge(currentLevelNode, currentNode);
+	}*/
+
+	std::stringstream ss;
+	ogdf::node currentLevelNode = graph.newNode();
+
+	if (!m_Surfaces.empty())
+	{
+		auto& surface = m_Surfaces[0];
+		ss << glm::to_string(surface.m_Vertices[0]) << "\n" << glm::to_string(surface.m_Vertices[1]) << "\n" << glm::to_string(surface.m_Vertices[2]);
+		graphAtt.fillColor(currentLevelNode) = ogdf::Color(surface.m_Color.r, surface.m_Color.g, surface.m_Color.b);
+		graphAtt.label(currentLevelNode) = ss.str();
+		graphAtt.width(currentLevelNode) = graphAtt.width(currentLevelNode) * 3;
 	}
-	currentNode = agnode(graph, (char*)ss.str().c_str(), true);
-	assert(currentNode);
+
+	if (parentNode)
+	{
+		ogdf::edge edgeParentToCurrent = graph.newEdge(*parentNode, currentLevelNode);
+		if (dir != BinaryTreePartitioning::Dir::None)
+		{
+			graphAtt.label(edgeParentToCurrent) = dir == BinaryTreePartitioning::Dir::Left ? "Left\0" : "Right";
+		}
+	}
 
 	if (m_NodeLeft)
 	{
-		Agnode_t* leftNode = m_NodeLeft->GetCGraphTree(graph);
-
-		assert(agedge(graph, currentNode, leftNode, (char*)"AAA", true));
+		m_NodeLeft->GetCGraphTree(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Left);
+		//m_NodeLeft->GetCGraphTree(graph, graphAtt, rank, &currentLevelNode, BinaryTreePartitioning::Dir::Left, depth + 1);
 	}
 
 	if (m_NodeRight)
 	{
-		Agnode_t* rightNode = m_NodeRight->GetCGraphTree(graph);
-
-		assert(agedge(graph, currentNode, rightNode, (char*)"aaa", true));
+		m_NodeRight->GetCGraphTree(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Right);
+		//m_NodeRight->GetCGraphTree(graph, graphAtt, rank, &currentLevelNode, BinaryTreePartitioning::Dir::Right, depth + 1);
 	}
-
-	return currentNode;
 }
 
 void BinaryTreePartitioning::Clear()
@@ -330,4 +357,3 @@ void BinaryTreePartitioning::Clear()
 	m_NodeRight.reset();
 	m_Surfaces.clear();
 }
-

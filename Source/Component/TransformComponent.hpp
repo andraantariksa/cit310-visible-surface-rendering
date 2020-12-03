@@ -6,9 +6,9 @@
 class TransformComponent final
 {
 public:
-	glm::mat4 m_MatTransform; // OCS to WCS transformation matrix
-	glm::mat4 m_MatTranslation;
-	glm::mat4 m_MatRotation;
+	glm::dmat4 m_MatTransform; // OCS to WCS transformation matrix
+	glm::dmat4 m_MatTranslation;
+	glm::dmat4 m_MatRotation;
 
 	TransformComponent() noexcept;
 	~TransformComponent() = default;

@@ -18,7 +18,7 @@
 #define PI 3.14159265358979323846f
 #define RAD 0.0174533f
 
-BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, float vanishingPointZ):
+BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, double vanishingPointZ):
 	// Painter as the default because it's the first one I made :p
 	m_RenderMethod(renderMethod)
 {
@@ -26,23 +26,23 @@ BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, float vanishingPoi
 	m_Sprite.setTexture(m_Texture);
 	TextureClear();
 
-	const float scaleX = 1.0f;
-	const float scaleY = 1.0f;
-	const float translateX = (float)WINDOW_WIDTH / 2;
-	const float translateY = (float)WINDOW_HEIGHT / 2;
+	const double scaleX = 1.0;
+	const double scaleY = 1.0;
+	const double translateX = (double)WINDOW_WIDTH / 2;
+	const double translateY = (double)WINDOW_HEIGHT / 2;
 
-	m_MatVCSToSCS = glm::mat4(
-		glm::vec4(scaleX, 0.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, -scaleY, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
-		glm::vec4(translateX, translateY, 0.0f, 1.0f)
+	m_MatVCSToSCS = glm::dmat4(
+		glm::dvec4(scaleX, 0.0, 0.0, 0.0),
+		glm::dvec4(0.0, -scaleY, 0.0, 0.0),
+		glm::dvec4(0.0, 0.0, 1.0, 0.0),
+		glm::dvec4(translateX, translateY, 0.0, 1.0)
 	);
 
-	m_MatWCSToVCS = glm::mat4(
-		glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-		glm::vec4(0.0f, 0.0f, 1.0f, 1.0f / -vanishingPointZ),
-		glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+	m_MatWCSToVCS = glm::dmat4(
+		glm::dvec4(1.0, 0.0, 0.0, 0.0),
+		glm::dvec4(0.0, 1.0, 0.0, 0.0),
+		glm::dvec4(0.0, 0.0, 1.0, 1.0 / -vanishingPointZ),
+		glm::dvec4(0.0, 0.0, 0.0, 1.0)
 	);
 
 	m_MatTransform = m_MatVCSToSCS * m_MatWCSToVCS;
@@ -59,9 +59,9 @@ void BaseRenderSystem::Update(entt::registry& registry)
 			for (SurfaceComponent& surface : sphere.m_Surfaces)
 			{
 				SurfaceComponent surfaceVCS(
-					TransformWCSToVCS(TransformOCSToWCS(glm::vec4(surface.m_Vertices[0], 1.0f), transform)),
-					TransformWCSToVCS(TransformOCSToWCS(glm::vec4(surface.m_Vertices[1], 1.0f), transform)),
-					TransformWCSToVCS(TransformOCSToWCS(glm::vec4(surface.m_Vertices[2], 1.0f), transform)),
+					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[0], 1.0), transform)),
+					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[1], 1.0), transform)),
+					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[2], 1.0), transform)),
 					surface.m_Color);
 				if (!IsSurfaceIsBackFaceCulled(surfaceVCS))
 				{
@@ -110,51 +110,51 @@ void BaseRenderSystem::ChangeRenderMethod(entt::registry& registry, RenderMethod
 	Update(registry);
 }
 
-void BaseRenderSystem::ResetMatrix(float vanishing_point_z)
+void BaseRenderSystem::ResetMatrix(double vanishing_point_z)
 {
 }
 
 bool BaseRenderSystem::IsSurfaceIsBackFaceCulled(const SurfaceComponent& surface)
 {
-	const glm::vec3 v1 = surface.m_Vertices[1] - surface.m_Vertices[0];
-	const glm::vec3 v2 = surface.m_Vertices[2] - surface.m_Vertices[1];
-	return glm::dot(glm::cross(v1, v2), m_Camera.m_Direction) >= 0.0f;
+	const glm::dvec3 v1 = surface.m_Vertices[1] - surface.m_Vertices[0];
+	const glm::dvec3 v2 = surface.m_Vertices[2] - surface.m_Vertices[1];
+	return glm::dot(glm::cross(v1, v2), Camera::Direction) >= 0.0;
 }
 
-sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::vec4& v)
+sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::dvec4& v)
 {
-	assert(v.w != 0.0f && "Uh oh w is 0");
+	assert(v.w != 0.0 && "Uh oh w is 0");
 	return sf::Vector2f(v.x / v.w, v.y / v.w);
 }
 
-glm::vec4 BaseRenderSystem::TransformVCSToSCS(const glm::vec4& v)
+glm::dvec4 BaseRenderSystem::TransformVCSToSCS(const glm::dvec4& v)
 {
 	const auto result = m_MatVCSToSCS * v;
-	assert(result.w != 0.0f && "Uh oh w is 0");
-	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
+	assert(result.w != 0.0 && "Uh oh w is 0");
+	return glm::dvec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0);
 }
 
-glm::vec4 BaseRenderSystem::TransformWCSToVCS(const glm::vec4& v)
+glm::dvec4 BaseRenderSystem::TransformWCSToVCS(const glm::dvec4& v)
 {
 	const auto result = m_MatWCSToVCS * v;
-	assert(result.w != 0.0f && "Uh oh w is 0");
+	assert(result.w != 0.0 && "Uh oh w is 0");
 	const auto x = result.x / result.w;
 	const auto y = result.y / result.w;
 	assert(x == x && "Uh oh infinity");
 	assert(y == y && "Uh oh infinity");
-	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
+	return glm::dvec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0);
 }
 
-glm::vec4 BaseRenderSystem::TransformWCSToSCS(const glm::vec4& v)
+glm::dvec4 BaseRenderSystem::TransformWCSToSCS(const glm::dvec4& v)
 {
 	return TransformVCSToSCS(TransformWCSToVCS(v));
 }
 
-glm::vec4 BaseRenderSystem::TransformOCSToWCS(const glm::vec4& v, const TransformComponent& transform)
+glm::dvec4 BaseRenderSystem::TransformOCSToWCS(const glm::dvec4& v, const TransformComponent& transform)
 {
 	const auto result = transform.m_MatTransform * v;
-	assert(result.w != 0.0f && "Uh oh w is 0");
-	return glm::vec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0f);
+	assert(result.w != 0.0 && "Uh oh w is 0");
+	return glm::dvec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0);
 }
 
 

@@ -7,7 +7,7 @@ EdgeBucket::EdgeBucket() :
 {
 }
 
-void EdgeBucket::NextX(float A, float B, float C)
+void EdgeBucket::NextX(double A, double B, double C)
 {
 	m_Carry += std::abs(m_DX);
 	while (2 * m_Carry >= m_DY)
@@ -23,7 +23,7 @@ void EdgeBucket::NextX(float A, float B, float C)
 		}
 	}
 	
-	m_ZOfYMin -= (A / ((float)m_DY / (float)m_DX) + B) / C;
+	m_ZOfYMin -= (A / ((double)m_DY / (double)m_DX) + B) / C;
 }
 
 bool EdgeBucket::IsAlive(int yPos)

@@ -9,11 +9,11 @@ public:
 	int m_DX;
 	int m_DY;
 	int m_Carry;
-	float m_ZOfYMin;
+	double m_ZOfYMin;
 
 	EdgeBucket();
 
-	void NextX(float A, float B, float C);
+	void NextX(double A, double B, double C);
 	bool IsAlive(int y_pos);
 };
 

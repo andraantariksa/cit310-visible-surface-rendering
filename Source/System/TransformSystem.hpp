@@ -14,9 +14,9 @@ public:
 
 	void Reset(entt::registry& registry, entt::entity& entity);
 
-	void Rotate(entt::registry& registry, entt::entity& entity, glm::vec3 const& rotateVec, float rotationDegree);
+	void Rotate(entt::registry& registry, entt::entity& entity, glm::dvec3 const& rotateVec, double rotationDegree);
 
-	void Translate(entt::registry& registry, entt::entity& entity, glm::vec3 const& translateVec);
+	void Translate(entt::registry& registry, entt::entity& entity, glm::dvec3 const& translateVec);
 
 	void UpdateMatTransform(entt::registry& registry, entt::entity& entity);
 };

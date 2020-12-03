@@ -32,21 +32,21 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 	{
 		// Change it into SCS and preserve the Z value, which will used by the Z buffer
 		surface = SurfaceComponent(
-			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[0], 1.0f)),
-			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[1], 1.0f)),
-			baseRenderSystem.TransformVCSToSCS(glm::vec4(surface.m_Vertices[2], 1.0f)),
+			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[0], 1.0)),
+			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[1], 1.0)),
+			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[2], 1.0)),
 			surface.m_Color);
 
-		glm::vec3 normal = glm::cross(
+		glm::dvec3 normal = glm::cross(
 			surface.m_Vertices[1] - surface.m_Vertices[0],
 			surface.m_Vertices[2] - surface.m_Vertices[1]
 		);
-		float dZX = -normal.x / normal.z;
+		double dZX = -normal.x / normal.z;
 
 		auto [yMinOfPolygon, yMaxOfPolygon] = std::minmax_element(
 			surface.m_Vertices.begin(),
 			surface.m_Vertices.end(),
-			[](glm::vec3& coord, glm::vec3& anotherCoord) {
+			[](glm::dvec3& coord, glm::dvec3& anotherCoord) {
 				return coord.y < anotherCoord.y;
 			}
 		);
@@ -55,8 +55,8 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 		std::vector<std::vector<EdgeBucket>> sortedEdgeArray(yMaxOfPolygon->y - yMinOfPolygon->y + 1);
 
 		// Traverse on edge
-		glm::vec3 prev = *std::prev(surface.m_Vertices.end());
-		for (glm::vec3 current : surface.m_Vertices)
+		glm::dvec3 prev = *std::prev(surface.m_Vertices.end());
+		for (glm::dvec3 current : surface.m_Vertices)
 		{
 			if ((int)prev.y - (int)current.y == 0)
 			{
@@ -75,6 +75,20 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 		for (int y = 0; y < sortedEdgeArray.size(); ++y)
 		{
+			m_ActiveEdges.erase(
+				std::remove_if(
+					m_ActiveEdges.begin(),
+					m_ActiveEdges.end(),
+					[&](EdgeBucket& edgeBucket)
+					{
+						edgeBucket.NextX(normal.x, normal.y, normal.z);
+						return !edgeBucket.IsAlive(y);
+					}
+				),
+				m_ActiveEdges.end());
+
+			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
+
 			std::sort(
 				m_ActiveEdges.begin(),
 				m_ActiveEdges.end(),
@@ -93,7 +107,7 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					break;
 				}*/
 
-				float z = edgeBucket->m_ZOfYMin;
+				double z = edgeBucket->m_ZOfYMin;
 				for (int x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
 				{
 					const auto position = glm::ivec2(x, y + (int)yMinOfPolygon->y);
@@ -109,21 +123,6 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					z += dZX;
 				}
 			}
-
-			m_ActiveEdges.erase(
-				std::remove_if(
-					m_ActiveEdges.begin(),
-					m_ActiveEdges.end(),
-					[&](EdgeBucket& edgeBucket)
-					{
-						edgeBucket.NextX(normal.x, normal.y, normal.z);
-						return !edgeBucket.IsAlive(y);
-					}
-				),
-				m_ActiveEdges.end()
-			);
-
-			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
 		}
 	}
 
@@ -147,7 +146,7 @@ void ZBufferRenderSystem::ResetZBuffer()
 	}
 }
 
-std::tuple<EdgeBucket, int> ZBufferRenderSystem::GetEdgeBucket(glm::vec3& a, glm::vec3& b)
+std::tuple<EdgeBucket, int> ZBufferRenderSystem::GetEdgeBucket(glm::dvec3& a, glm::dvec3& b)
 {
 	EdgeBucket edgeBucket;
 	int yMin;

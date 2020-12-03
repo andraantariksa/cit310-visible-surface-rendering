@@ -11,41 +11,41 @@ std::vector<SurfaceComponent> Shape3DExample()
 {
 	state = !state;
 	return std::move(std::vector<SurfaceComponent>({
-		// Left
+		//// Left
 		SurfaceComponent(
-			glm::vec3(0.0f, 200.0f, 0.0f),
-			glm::vec3(-100.0f, 0.0f, -100.0f),
-			glm::vec3(-100.0f, 0.0f, 100.0f),
+			glm::dvec3(0.0, 200.0, 0.0),
+			glm::dvec3(-100.0, 0.0, -100.0),
+			glm::dvec3(-100.0, 0.0, 100.0),
 			state ? sf::Color::Black : sf::Color::White),
 		// Front
 		SurfaceComponent(
-			glm::vec3(0.0f, 200.0f, 0.0f),
-			glm::vec3(-100.0f, 0.0f, 100.0f),
-			glm::vec3(100.0f, 0.0f, 100.0f),
-			state ? sf::Color::Green : sf::Color::Yellow),
+			glm::dvec3(0.0, 200.0, 0.0),
+			glm::dvec3(-100.0, 0.0, 100.0),
+			glm::dvec3(100.0, 0.0, 100.0),
+			state ? sf::Color::Green : sf::Color(0, 153, 230)),
 		// Right
 		SurfaceComponent(
-			glm::vec3(0.0f, 200.0f, 0.0f),
-			glm::vec3(100.0f, 0.0f, 100.0f),
-			glm::vec3(100.0f, 0.0f, -100.0f),
+			glm::dvec3(0.0, 200.0, 0.0),
+			glm::dvec3(100.0, 0.0, 100.0),
+			glm::dvec3(100.0, 0.0, -100.0),
 			state ? sf::Color::Red : sf::Color::Magenta),
 		// Behind
 		SurfaceComponent(
-			glm::vec3(0.0f, 200.0f, 0.0f),
-			glm::vec3(100.0f, 0.0f, -100.0f),
-			glm::vec3(-100.0f, 0.0f, -100.0f),
-			state ? sf::Color::Yellow : sf::Color::Cyan),
+			glm::dvec3(0.0, 200.0, 0.0),
+			glm::dvec3(100.0, 0.0, -100.0),
+			glm::dvec3(-100.0, 0.0, -100.0),
+			state ? sf::Color::Yellow : sf::Color(115, 130, 230)),
 		// Front Left Bottom
 		SurfaceComponent(
-			glm::vec3(-100.0f, 0.0f, 100.0f),
-			glm::vec3(-100.0f, 0.0f, -100.0f),
-			glm::vec3(100.0f, 0.0f, 100.0f),
+			glm::dvec3(-100.0, 0.0, 100.0),
+			glm::dvec3(-100.0, 0.0, -100.0),
+			glm::dvec3(100.0, 0.0, 100.0),
 			state ? sf::Color(235, 64, 52) : sf::Color(107, 19, 13)),
 		// Behind Right Bottom
 		SurfaceComponent(
-			glm::vec3(100.0f, 0.0f, 100.0f),
-			glm::vec3(-100.0f, 0.0f, -100.0f),
-			glm::vec3(100.0f, 0.0f, -100.0f),
-			state ? sf::Color::Blue : sf::Color::Blue),
+			glm::dvec3(100.0, 0.0, 100.0),
+			glm::dvec3(-100.0, 0.0, -100.0),
+			glm::dvec3(100.0, 0.0, -100.0),
+			state ? sf::Color(225, 191, 255) : sf::Color::Blue),
 		}));
 }

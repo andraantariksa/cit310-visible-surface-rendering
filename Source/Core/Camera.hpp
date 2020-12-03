@@ -3,13 +3,9 @@
 
 #include <glm/glm.hpp>
 
-class Camera
+namespace Camera
 {
-public:
-	glm::vec3 m_Direction;
-
-	Camera();
-	~Camera() = default;
-};
+	inline glm::dvec3 Direction;
+}
 
 #endif
