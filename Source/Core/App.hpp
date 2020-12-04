@@ -28,6 +28,8 @@ private:
 	int m_GUITransformationMethod;
 	bool m_GUIWindowTips;
 	float m_GUITransformStep;
+	bool m_GUIShowMessageBox;
+	std::string m_GUIMessageText;
 
 	// System
 	BaseRenderSystem m_SystemRender;
@@ -39,6 +41,7 @@ public:
 	void Run();
 	void UpdateInterface();
 	void Update();
+	void ShowMessageBox(std::string& messageText);
 	void Render();
 };
 

@@ -5,7 +5,11 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <cmath>
-#include <cassert>
+#ifdef _DEBUG_BUILD
+	#include <cassert>
+#else
+	#include <stdexcept>
+#endif
 #include <optional>
 
 #include "../Macro.hpp"
@@ -123,25 +127,60 @@ bool BaseRenderSystem::IsSurfaceIsBackFaceCulled(const SurfaceComponent& surface
 
 sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::dvec4& v)
 {
+#ifdef _DEBUG_BUILD
 	assert(v.w != 0.0 && "Uh oh w is 0");
+#else
+	if (v.w == 0.0)
+	{
+		throw std::runtime_error("w is 0. Error on BaseRenderSystem::TransformVec4GLMToVec2SFML");
+	}
+#endif
 	return sf::Vector2f(v.x / v.w, v.y / v.w);
 }
 
 glm::dvec4 BaseRenderSystem::TransformVCSToSCS(const glm::dvec4& v)
 {
 	const auto result = m_MatVCSToSCS * v;
+#ifdef _DEBUG_BUILD
 	assert(result.w != 0.0 && "Uh oh w is 0");
+#else
+	if (result.w == 0.0)
+	{
+		throw std::runtime_error("w is 0. Error in BaseRenderSystem::TransformVCSToSCS");
+	}
+#endif
 	return glm::dvec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0);
 }
 
 glm::dvec4 BaseRenderSystem::TransformWCSToVCS(const glm::dvec4& v)
 {
 	const auto result = m_MatWCSToVCS * v;
+#ifdef _DEBUG_BUILD
 	assert(result.w != 0.0 && "Uh oh w is 0");
+#else
+	if (result.w == 0.0)
+	{
+		throw std::runtime_error("w is 0. Error in BaseRenderSystem::TransformWCSToVCS");
+	}
+#endif
 	const auto x = result.x / result.w;
 	const auto y = result.y / result.w;
+#ifdef _DEBUG_BUILD
 	assert(x == x && "Uh oh infinity");
+#else
+	if (x != x)
+	{
+		throw std::runtime_error("x is inf. Error in BaseRenderSystem::TransformWCSToVCS");
+	}
+#endif
+#ifdef _DEBUG_BUILD
 	assert(y == y && "Uh oh infinity");
+#else
+	if (y != y)
+	{
+		throw std::runtime_error("y is inf. Error in BaseRenderSystem::TransformWCSToVCS");
+	}
+#endif
 	return glm::dvec4(result.x / result.w, result.y / result.w, result.z / result.w, 1.0);
 }
 

@@ -54,13 +54,24 @@ bool gte(T a, T b) {
 static double LineIntersection(const glm::dvec3& from, const glm::dvec3& to, const glm::dvec3& arbitraryPointOnPlane, const glm::dvec3& normal)
 {
 	double denominator = glm::dot(to - from, normal);
+#ifdef _DEBUG_BUILD
 	assert(denominator != 0.0 && "Uh oh cross(to - from, normal) is 0");
+#else
+	if (denominator == 0.0)
+	{
+		throw std::runtime_error("denominator is 0.0. Error on LineIntersection");
+	}
+#endif
 	double result = glm::dot(arbitraryPointOnPlane - from, normal) / denominator;
-	//if (gte(result, 0.0) && lte(result, 1.0))
-	//{
 	result = glm::clamp(result, 0.0, 1.0);
-	//}
+#ifdef _DEBUG_BUILD
 	assert(result >= 0.0 && result <= 1.0 && "Out of bound result");
+#else
+	if (!(result >= 0.0 && result <= 1.0))
+	{
+		throw std::runtime_error("Result is out of bound 0.0 <= result <= 1. Error on LineIntersection");
+	}
+#endif
 	return result;
 }
 
@@ -297,7 +308,7 @@ void BinaryTreePartitioning::Traverse(std::function<void(std::vector<SurfaceComp
 }
 
 //void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, std::vector<std::pair<int, int>>& rank, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir, int depth)
-void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir)
+void BinaryTreePartitioning::GetTreeGraph(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir)
 {
 	/*std::stringstream ss;
 	ogdf::node currentLevelNode = graph.newNode();
@@ -340,13 +351,13 @@ void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttrib
 
 	if (m_NodeLeft)
 	{
-		m_NodeLeft->GetCGraphTree(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Left);
+		m_NodeLeft->GetTreeGraph(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Left);
 		//m_NodeLeft->GetCGraphTree(graph, graphAtt, rank, &currentLevelNode, BinaryTreePartitioning::Dir::Left, depth + 1);
 	}
 
 	if (m_NodeRight)
 	{
-		m_NodeRight->GetCGraphTree(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Right);
+		m_NodeRight->GetTreeGraph(graph, graphAtt, &currentLevelNode, BinaryTreePartitioning::Dir::Right);
 		//m_NodeRight->GetCGraphTree(graph, graphAtt, rank, &currentLevelNode, BinaryTreePartitioning::Dir::Right, depth + 1);
 	}
 }

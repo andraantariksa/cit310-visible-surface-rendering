@@ -41,7 +41,7 @@ public:
 	void Clear();
 
 	void Traverse(std::function<void(std::vector<SurfaceComponent>&)>& f);
-	void GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode = nullptr, Dir dir = Dir::None);
+	void GetTreeGraph(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode = nullptr, Dir dir = Dir::None);
 	//void GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, std::vector<std::pair<int, int>>& rank, ogdf::node* parentNode=nullptr, Dir dir=Dir::None, int depth=0);
 };
 

@@ -30,7 +30,8 @@ App::App() :
 	m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::ZBuffer),
 	m_GUITransformationMethod((int)TransformationMethod::Translation),
 	m_GUITransformStep(10.0f),
-	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0)
+	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0),
+	m_GUIShowMessageBox(false)
 {
 	m_Window.setFramerateLimit(20);
 	ImGui::SFML::Init(m_Window);
@@ -79,7 +80,11 @@ void App::Run()
 			{
 				if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num9)
 				{
-					m_SelectedEntityIdx = event.key.code - (int)sf::Keyboard::Num1;
+					int nextSelectedEntityIdx = event.key.code - (int)sf::Keyboard::Num1;
+					if (m_Entities[nextSelectedEntityIdx])
+					{
+						m_SelectedEntityIdx = nextSelectedEntityIdx;
+					}
 				}
 				else if (event.key.code == sf::Keyboard::Escape)
 				{
@@ -95,7 +100,7 @@ void App::Run()
 						break;
 					}
 					default:
-						if (m_SelectedEntityIdx != -1)
+						if (m_SelectedEntityIdx != -1 && m_Entities[m_SelectedEntityIdx])
 						{
 							bool transformation = false;
 							switch ((TransformationMethod)m_GUITransformationMethod)
@@ -242,7 +247,7 @@ void App::UpdateInterface()
 			if (ImGui::MenuItem("Open"))
 			{
 				int availableSlot = 0;
-				for (int i = 0; i < 10; ++i)
+				for (int i = 0; i < 9; ++i)
 				{
 					if (!m_Entities[i])
 					{
@@ -257,31 +262,36 @@ void App::UpdateInterface()
 					auto openedFileResult = openedFile.result();
 					if (!openedFileResult.empty())
 					{
-						std::ifstream file(openedFileResult[0]);
-						ModelLoader::Lexer modelLexer(file);
-						ModelLoader::Parser modelParser(modelLexer);
-						modelParser.Parse();
+						try {
+							std::ifstream file(openedFileResult[0]);
+							ModelLoader::Lexer modelLexer(file);
+							ModelLoader::Parser modelParser(modelLexer);
+							modelParser.Parse();
+							std::vector<SurfaceComponent> surfaces;
+							for (int i = 0; i < modelParser.m_Result.m_Surfaces.size(); ++i)
+							{
+								surfaces.push_back(SurfaceComponent(
+									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][0]],
+									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][1]],
+									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][2]],
+									modelParser.m_Result.m_Colors[i]));
+							}
 
-						std::vector<SurfaceComponent> surfaces;
-						for (int i = 0; i < modelParser.m_Result.m_Surfaces.size(); ++i)
-						{
-							surfaces.push_back(SurfaceComponent(
-								modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][0]],
-								modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][1]],
-								modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][2]],
-								modelParser.m_Result.m_Colors[i]));
+							m_Entities[availableSlot] = std::make_unique<entt::entity>(m_Registry.create());
+							m_Registry.emplace<Shape3DComponent>(*m_Entities[availableSlot], surfaces);
+							m_Registry.emplace<TransformComponent>(*m_Entities[availableSlot]);
+
+							m_SystemRender.Update(m_Registry);
 						}
-
-						m_Entities[availableSlot] = std::make_unique<entt::entity>(m_Registry.create());
-						m_Registry.emplace<Shape3DComponent>(*m_Entities[availableSlot], surfaces);
-						m_Registry.emplace<TransformComponent>(*m_Entities[availableSlot]);
-
-						m_SystemRender.Update(m_Registry);
+						catch (std::exception& ex)
+						{
+							ShowMessageBox(std::string("Can not load the file.\n") + ex.what());
+						}
 					}
 				}
 				else
 				{
-					// No available slot
+					ShowMessageBox(std::string("No slot available for the object."));
 				}
 			}
 
@@ -345,6 +355,10 @@ void App::UpdateInterface()
 		}
 
 		ImGui::InputFloat("Step", &m_GUITransformStep, 10.0f, 10.0f);
+		if (m_GUITransformStep < 5.0f)
+		{
+			m_GUITransformStep = 5.0f;
+		}
 
 		int transformationMethod = m_GUITransformationMethod;
 		ImGui::RadioButton("Translation", &transformationMethod, (int)TransformationMethod::Translation);
@@ -354,7 +368,7 @@ void App::UpdateInterface()
 			m_GUITransformationMethod = transformationMethod;
 		}
 
-		if (m_SelectedEntityIdx != -1)
+		if (m_SelectedEntityIdx != -1 && m_Entities[m_SelectedEntityIdx])
 		{
 			if (transformationMethod == (int)TransformationMethod::Rotation)
 			{
@@ -514,8 +528,22 @@ void App::UpdateInterface()
 			ImGui::Text("Press F3 to change the rendering algorithm to Painter's Algorithm");
 			ImGui::Text("Press F4 to change the rendering algorithm to Z-Buffer");
 			ImGui::Text("Press 1 to 9 to change the selected object");
+			ImGui::Text("Press ESC to deselect the selected object");
 			ImGui::Text("Press Q, W, E, A, S, D to do the transformation");
 			ImGui::Text("Press P when using Painter Algorithm to print the tree");
+		}
+		ImGui::End();
+	}
+
+	if (m_GUIShowMessageBox)
+	{
+		ImGui::SetNextWindowPos(ImVec2(300.0f, 200.0f));
+		if (ImGui::Begin("INFO", &m_GUIShowMessageBox,
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoMove     |
+			ImGuiWindowFlags_NoResize))
+		{
+			ImGui::Text(m_GUIMessageText.c_str());
 		}
 		ImGui::End();
 	}
@@ -523,7 +551,20 @@ void App::UpdateInterface()
 
 void App::Update()
 {
-	m_SystemRender.Update(m_Registry);
+	try
+	{
+		m_SystemRender.Update(m_Registry);
+	}
+	catch (std::exception& ex)
+	{
+		ShowMessageBox(std::string("Error when trying to update the data.\n") + ex.what());
+	}
+}
+
+void App::ShowMessageBox(std::string& messageText)
+{
+	m_GUIMessageText = messageText;
+	m_GUIShowMessageBox = true;
 }
 
 void App::Render()

@@ -93,7 +93,7 @@ namespace ModelLoader
             }
             else
             {
-                throw "Error, expecting a number";
+                throw std::runtime_error("Error, expecting a number");
             }
             break;
         case '#':
@@ -125,7 +125,7 @@ namespace ModelLoader
             break;
         }
         default:
-            throw "Unidentified token";
+            throw std::runtime_error("Unidentified token");
         }
 
         return m_Token;

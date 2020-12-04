@@ -155,44 +155,22 @@ void PainterRenderSystem::PrintBinaryPartitioningTree()
 		ogdf::GraphAttributes::edgeLabel    |
 		ogdf::GraphAttributes::nodeStyle);
 
-	//std::vector<std::pair<int, int>> rank;
-	//m_BinaryPartitioningTree.GetCGraphTree(graph, graphAtt, rank);
+	m_BinaryPartitioningTree.GetTreeGraph(graph, graphAtt);
 
-	//ogdf::NodeArray<int> nodeRank(graph);
-	//for (auto& v: rank)
-	//	nodeRank[v.first] = v.second;
+	ogdf::SugiyamaLayout sugiyamaLayout;
+	sugiyamaLayout.setRanking(new ogdf::OptimalRanking);
+	sugiyamaLayout.setCrossMin(new ogdf::MedianHeuristic);
 
-	//ogdf::SugiyamaLayout SL;
- //   //SL.setRanking(new ogdf::OptimalRanking);
- //   SL.setCrossMin(new ogdf::MedianHeuristic);
-	//SL.arrangeCCs(false);
+	ogdf::OptimalHierarchyLayout* optimalHierarchyLayout = new ogdf::OptimalHierarchyLayout;
+	optimalHierarchyLayout->layerDistance(30.0);
+	optimalHierarchyLayout->nodeDistance(25.0);
+	optimalHierarchyLayout->weightBalancing(0.8);
+	sugiyamaLayout.setLayout(optimalHierarchyLayout);
 
-	//ogdf::OptimalHierarchyLayout *ohl = new ogdf::OptimalHierarchyLayout;
- //   ohl->layerDistance(30.0);
- //   ohl->nodeDistance(25.0);
- //   ohl->weightBalancing(0.8);
- //   SL.setLayout(ohl);
- //
- //   SL.call(graphAtt, nodeRank);
+	sugiyamaLayout.call(graphAtt);
 
-	m_BinaryPartitioningTree.GetCGraphTree(graph, graphAtt);
-
-	ogdf::SugiyamaLayout SL;
-	SL.setRanking(new ogdf::OptimalRanking);
-	SL.setCrossMin(new ogdf::MedianHeuristic);
-
-	ogdf::OptimalHierarchyLayout* ohl = new ogdf::OptimalHierarchyLayout;
-	ohl->layerDistance(30.0);
-	ohl->nodeDistance(25.0);
-	ohl->weightBalancing(0.8);
-	SL.setLayout(ohl);
-
-	SL.call(graphAtt);
-
-	ogdf::GraphIO::SVGSettings svgSettings;
-	//svgSettings.fontSize(3);
-	std::fstream file("result.svg", std::ios::out);
-	ogdf::GraphIO::drawSVG(graphAtt, file, svgSettings);
+	std::fstream file("tree.svg", std::ios::out);
+	ogdf::GraphIO::drawSVG(graphAtt, file);
 }
 
 std::tuple<EdgeBucket2, int> PainterRenderSystem::GetEdgeBucket(glm::dvec3& a, glm::dvec3& b)

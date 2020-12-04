@@ -4,6 +4,33 @@ project("VisibleSurfaceRendering")
 
 set(EXECUTABLE_NAME "VisibleSurfaceRendering")
 
+# Compiler vibe check
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	# Compile with static runtime
+	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	# Compile with static runtime
+	add_compile_options(
+        $<$<CONFIG:>:/MT> #---------|
+        $<$<CONFIG:Debug>:/MTd> #---|-- Statically link the runtime libraries
+        $<$<CONFIG:Release>:/MT> #--|
+    )
+endif()
+
+set(BUILD_SHARED_LIBS FALSE)
+set(SFML_USE_STATIC_STD_LIBS TRUE)
+add_subdirectory("${CMAKE_SOURCE_DIR}/Lib/SFML")
+
+configure_file(
+	"${CMAKE_SOURCE_DIR}/Lib/ogdf_SvgPrinter.cpp"
+	"${CMAKE_SOURCE_DIR}/Lib/ogdf/src/ogdf/fileformats/SvgPrinter.cpp"
+	COPYONLY)
+add_subdirectory("${CMAKE_SOURCE_DIR}/Lib/ogdf")
+configure_file(
+	"${CMAKE_CURRENT_BINARY_DIR}/Lib/ogdf/include/ogdf/basic/internal/config_autogen.h"
+	"${CMAKE_SOURCE_DIR}/Lib/ogdf/include/ogdf/basic/internal/config_autogen.h"
+	COPYONLY)
+
 set(FILE_SOURCES
 	"${CMAKE_SOURCE_DIR}/Lib/imgui-sfml/imgui-SFML.cpp" # Workaround for ImGui-SFML
 	"Source/Main.cpp"
@@ -33,61 +60,15 @@ else()
 		${FILE_SOURCES})
 endif()
 
+# Compiler vibe check
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(${EXECUTABLE_NAME} PUBLIC "-std=c++17")
-	# Compile with static runtime
-	target_compile_options(${EXECUTABLE_NAME} PUBLIC "-static-libgcc -static-libstdc++")
 	# Resize the stack size
 	set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS -Wl,--stack,8000000)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	target_compile_options(${EXECUTABLE_NAME} PUBLIC "/std:c++17")
-	# Compile with static runtime
-	target_compile_options(${EXECUTABLE_NAME} PUBLIC "/MTd")
 	# Resize the stack size
 	set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS /STACK:8000000)
-endif()
-
-if(WIN32)
-	# If x64
-	if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-		if(MSVC)
-			target_compile_definitions(${EXECUTABLE_NAME} PUBLIC
-				SFML_STATIC)
-			if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-				target_link_libraries(${EXECUTABLE_NAME} PUBLIC
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s-d-srt.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s-d-srt.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s-d-srt.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib")
-			else()
-				target_link_libraries(${EXECUTABLE_NAME} PUBLIC
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-window-s.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-graphics-s.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/sfml-system-s.lib"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/msvc-win-x64/freetype.lib")
-			endif()
-		elseif(MINGW)
-			target_compile_definitions(${EXECUTABLE_NAME}
-					SFML_STATIC)
-			if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-				target_link_libraries(${EXECUTABLE_NAME} PUBLIC
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s-d.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s-d.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s-d.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libfreetype.a")
-			else()
-				target_link_libraries(${EXECUTABLE_NAME} PUBLIC
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-window-s.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-graphics-s.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libsfml-system-s.a"
-					"${CMAKE_SOURCE_DIR}/Lib/SFML/lib/mingw-win-x64/libfreetype.a")
-			endif()
-		endif()
-	else()
-		message(FATAL_ERROR "x64-bit compiler required")
-	endif()
-else()
-	message(FATAL_ERROR "This program is intended for Windows")
 endif()
 
 # ImGui
@@ -99,12 +80,14 @@ add_library("ImGui" STATIC
 	"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/fonts/binary_to_compressed_c.cpp"
 	#"${CMAKE_SOURCE_DIR}/Lib/imgui/misc/freetype/imgui_freetype.cpp"
 	)
-target_compile_options("ImGui" PUBLIC "/MTd")
+target_compile_options("ImGui" PUBLIC)
 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC
-	# See Lib/ogdf/lib/README.md if you have any difficulties
-	"${CMAKE_SOURCE_DIR}/Lib/ogdf/lib/OGDF-d-srt.lib"
-	"${CMAKE_SOURCE_DIR}/Lib/ogdf/lib/COIN-d-srt.lib"
+	"sfml-graphics"
+    "sfml-system"
+    "sfml-window"
+	"OGDF"
+	"COIN"
 	"ImGui"
 	"opengl32.lib"
 	"winmm.lib"

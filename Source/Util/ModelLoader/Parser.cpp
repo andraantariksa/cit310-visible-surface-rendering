@@ -1,7 +1,5 @@
 #include "Parser.hpp"
 
-#include <cassert>
-
 #include "Lexer.hpp"
 
 namespace ModelLoader
@@ -39,7 +37,10 @@ namespace ModelLoader
 			}
 		}
 
-		assert(m_Result.m_Colors.size() == m_Result.m_Surfaces.size() && "Total color and surface does not match!");
+		if (m_Result.m_Colors.size() != m_Result.m_Surfaces.size())
+		{
+			throw std::runtime_error("Total color and surface does not match!");
+		}
 	}
 
 	void Parser::ConsumeColor()
@@ -75,7 +76,10 @@ namespace ModelLoader
 	Lexer::Token Parser::ExpectNext(TokenType type)
 	{
 		Lexer::Token token = m_Lexer.NextToken();
-		assert(token.m_Type == type && "Token is not expected");
+		if (token.m_Type != type)
+		{
+			throw std::runtime_error("Token is not expected");
+		}
 		return std::move(token);
 	}
 }
