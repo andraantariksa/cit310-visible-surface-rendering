@@ -7,8 +7,9 @@
 #include <SFML/Graphics.hpp>
 
 #include "../Macro.hpp"
-#include "../Component/SurfaceComponent.hpp"
-#include "../Component/Surface2DComponent.hpp"
+#include "../Component/Triangle2DComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
+#include "../Component/Shape3DComponent.hpp"
 #include "../Misc/EdgeBucket.hpp"
 #include "../Misc/BinaryTreePartitioning.hpp"
 
@@ -18,22 +19,18 @@ class BaseRenderSystem;
 class PainterRenderSystem
 {
 public:
-	std::vector<EdgeBucket2> m_ActiveEdges;
-
 	BinaryTreePartitioning m_BinaryPartitioningTree;
 
-	std::vector<SurfaceComponent> m_CachedSurfaces2D;
+	std::vector<Triangle2DComponent> m_CachedSurfaces3D;
 
 	PainterRenderSystem() = default;
 	~PainterRenderSystem() = default;
 
-	void Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<SurfaceComponent>& surfacesVCS);
+	void Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<Triangle3DComponent>& surfacesVCS);
 
 	void Render(entt::registry& registry, BaseRenderSystem& baseRenderSystem, sf::RenderWindow& window);
 
 	void PrintBinaryPartitioningTree();
-
-	std::tuple<EdgeBucket2, int> GetEdgeBucket(glm::dvec3& a, glm::dvec3& b);
 };
 
 #endif

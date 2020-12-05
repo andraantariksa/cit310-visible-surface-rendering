@@ -7,7 +7,7 @@
 #include <optional>
 
 #include "../Component/TransformComponent.hpp"
-#include "../Component/SurfaceComponent.hpp"
+#include "../Component/Surface3DComponent.hpp"
 #include "TransformSystem.hpp"
 #include "PainterRenderSystem.hpp"
 #include "ZBufferRenderSystem.hpp"
@@ -25,7 +25,7 @@ public:
 	PainterRenderSystem m_SystemPainterRender;
 
 	// Stored in the class to avoid reallocation
-	std::vector<SurfaceComponent> m_SurfacesVCS;
+	std::vector<Shape3DComponent> m_Shapes3DVCS;
 
 	enum class RenderMethod: int
 	{
@@ -51,7 +51,7 @@ public:
 	// Default vanishing point
 	void ResetMatrix(double vanishing_point_z = -500.0);
 
-	bool IsSurfaceIsBackFaceCulled(const SurfaceComponent& surface);
+	bool IsSurfaceIsBackFaceCulled(const std::array<glm::dvec3, 3>& triangle);
 
 	sf::Vector2f TransformVec4GLMToVec2SFML(const glm::dvec4& v);
 	glm::dvec4 TransformVCSToSCS(const glm::dvec4& v);

@@ -11,7 +11,7 @@
 #include <ogdf/basic/Graph.h>
 #include <ogdf/fileformats/GraphIO.h>
 
-#include "../Component/SurfaceComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
 #include "../Core/Camera.hpp"
 #include "../Util/Logger.hpp"
 
@@ -80,12 +80,12 @@ static glm::dvec3 LineParametric(const glm::dvec3& from, const glm::dvec3& to, c
 	return from + percentage * (to - from);
 }
 
-BinaryTreePartitioning::BinaryTreePartitioning(const std::vector<SurfaceComponent>& surfaces)
+BinaryTreePartitioning::BinaryTreePartitioning(const std::vector<Triangle3DComponent>& surfaces)
 {
 	Construct(surfaces);
 }
 
-void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surfaces)
+void BinaryTreePartitioning::Construct(const std::vector<Triangle3DComponent>& surfaces)
 {
 	//assert(surfaces.size() != 0 && "BSP with 0 surface");
 	if (surfaces.size() == 0)
@@ -94,7 +94,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 	}
 
 	// First surface as the reference surface
-	const SurfaceComponent referenceSurface = surfaces[0];
+	const Triangle3DComponent referenceSurface = surfaces[0];
 	const glm::dvec3& referenceVertex = referenceSurface.m_Vertices[0];
 	m_Surfaces.push_back(referenceSurface);
 	glm::dvec3 referenceSurfaceNormal = glm::cross(
@@ -109,8 +109,8 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 	}
 
 	// To store the front and back surface
-	std::vector<SurfaceComponent> frontSideSurfaces;
-	std::vector<SurfaceComponent> backSideSurfaces;
+	std::vector<Triangle3DComponent> frontSideSurfaces;
+	std::vector<Triangle3DComponent> backSideSurfaces;
 
 	// Start from the second surface
 	for (auto it = std::next(surfaces.begin()); it != surfaces.end(); ++it)
@@ -175,7 +175,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 					referenceSurfaceNormal));
 
 			backSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[0].m_Idx],
 					d,
 					it->m_Vertices[dotProductResults[1].m_Idx],
@@ -183,7 +183,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 			backSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[1].m_Idx],
 					d,
 					e,
@@ -191,7 +191,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 			frontSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[2].m_Idx],
 					e,
 					d,
@@ -223,7 +223,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 					referenceSurfaceNormal));
 
 			frontSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[2].m_Idx],
 					d,
 					it->m_Vertices[dotProductResults[1].m_Idx],
@@ -231,7 +231,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 			frontSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[1].m_Idx],
 					d,
 					e,
@@ -239,7 +239,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 			backSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[0].m_Idx],
 					e,
 					d,
@@ -263,7 +263,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 					referenceSurfaceNormal));
 
 			backSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					it->m_Vertices[dotProductResults[0].m_Idx],
 					it->m_Vertices[dotProductResults[1].m_Idx],
 					d,
@@ -271,7 +271,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 				)
 			);
 			frontSideSurfaces.push_back(
-				SurfaceComponent(
+				Triangle3DComponent(
 					d,
 					it->m_Vertices[dotProductResults[1].m_Idx],
 					it->m_Vertices[dotProductResults[2].m_Idx],
@@ -294,7 +294,7 @@ void BinaryTreePartitioning::Construct(const std::vector<SurfaceComponent>& surf
 	}
 }
 
-void BinaryTreePartitioning::Traverse(std::function<void(std::vector<SurfaceComponent>&)>& f)
+void BinaryTreePartitioning::Traverse(std::function<void(std::vector<Triangle3DComponent>&)>& f)
 {
 	if (m_NodeLeft)
 	{

@@ -18,11 +18,12 @@
 #include "../System/BaseRenderSystem.hpp"
 #include "../Util/Logger.hpp"
 
-// TODO
-// Implement file upload
-// Idk which format we should use, or we could create a new format that based on CSV?
 App::App() :
-	m_Window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), APP_NAME, sf::Style::Titlebar | sf::Style::Close),
+	m_Window(
+		sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
+		APP_NAME,
+		sf::Style::Titlebar |
+		sf::Style::Close),
 	m_ClearColor(CLEAR_COLOR),
 	m_GUIWindowTips(true),
 	// -1 means not selecting anything
@@ -30,29 +31,29 @@ App::App() :
 	m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::ZBuffer),
 	m_GUITransformationMethod((int)TransformationMethod::Translation),
 	m_GUITransformStep(10.0f),
-	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0),
+	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0f),
 	m_GUIShowMessageBox(false)
 {
 	m_Window.setFramerateLimit(20);
 	ImGui::SFML::Init(m_Window);
 	ImGui::GetIO().IniFilename = nullptr;
 
-	Camera::Direction = { 0.0, 0.0, -1.0 };
+	Camera::Direction = { 0.0f, 0.0f, -1.0f };
 
 	// Initialize default 2 pyramid
 	m_Entities[0] = std::make_unique<entt::entity>(m_Registry.create());
 	m_Registry.emplace<Shape3DComponent>(*m_Entities[0], Shape3DExample());
 	m_Registry.emplace<TransformComponent>(*m_Entities[0]);
 
-	m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::dvec3(-50.0, 0.0, 0.0));
+	m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::vec3(-50.0f, 0.0f, 0.0f));
 
 	m_Entities[1] = std::make_unique<entt::entity>(m_Registry.create());
 	m_Registry.emplace<Shape3DComponent>(*m_Entities[1], Shape3DExample());
 	m_Registry.emplace<TransformComponent>(*m_Entities[1]);
 
-	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::dvec3(1.0, 0.0, 0.0), 30.0);
-	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::dvec3(0.0, 1.0, 0.0), 30.0);
-	m_SystemTransform.Translate(m_Registry, *m_Entities[1], glm::dvec3(50.0, 0.0, 0.0));
+	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::vec3(1.0f, 0.0f, 0.0f), 30.0f);
+	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
+	m_SystemTransform.Translate(m_Registry, *m_Entities[1], glm::vec3(50.0f, 0.0f, 0.0f));
 }
 
 App::~App()
@@ -149,7 +150,7 @@ void App::Run()
 							case TransformationMethod::Rotation:
 							{
 								glm::dvec3 vec(0.0);
-								double angleSign = 1.0;
+								float angleSign = 1.0;
 								switch (event.key.code)
 								{
 								case sf::Keyboard::A:
@@ -267,18 +268,20 @@ void App::UpdateInterface()
 							ModelLoader::Lexer modelLexer(file);
 							ModelLoader::Parser modelParser(modelLexer);
 							modelParser.Parse();
-							std::vector<SurfaceComponent> surfaces;
+
+							Shape3DComponent shape3D;
+							shape3D.m_Vertices = modelParser.m_Result.m_Vertices;
+							shape3D.m_Surfaces.resize(modelParser.m_Result.m_Surfaces.size());
 							for (int i = 0; i < modelParser.m_Result.m_Surfaces.size(); ++i)
 							{
-								surfaces.push_back(SurfaceComponent(
-									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][0]],
-									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][1]],
-									modelParser.m_Result.m_Vertices[modelParser.m_Result.m_Surfaces[i][2]],
-									modelParser.m_Result.m_Colors[i]));
+								shape3D.m_Surfaces[i].m_Color = modelParser.m_Result.m_Colors[i];
+								shape3D.m_Surfaces[i].m_VertexIndices[0] = modelParser.m_Result.m_Surfaces[i][0];
+								shape3D.m_Surfaces[i].m_VertexIndices[1] = modelParser.m_Result.m_Surfaces[i][1];
+								shape3D.m_Surfaces[i].m_VertexIndices[2] = modelParser.m_Result.m_Surfaces[i][2];
 							}
 
 							m_Entities[availableSlot] = std::make_unique<entt::entity>(m_Registry.create());
-							m_Registry.emplace<Shape3DComponent>(*m_Entities[availableSlot], surfaces);
+							m_Registry.emplace<Shape3DComponent>(*m_Entities[availableSlot], shape3D);
 							m_Registry.emplace<TransformComponent>(*m_Entities[availableSlot]);
 
 							m_SystemRender.Update(m_Registry);
@@ -345,6 +348,7 @@ void App::UpdateInterface()
 		}
 
 		int renderMethod = m_GUIRenderMethod;
+		ImGui::Text("Rendering Algorithm");
 		ImGui::RadioButton("Painter's Algorithm", &renderMethod, (int)BaseRenderSystem::RenderMethod::Painter);
 		ImGui::RadioButton("ZBuffer", &renderMethod, (int)BaseRenderSystem::RenderMethod::ZBuffer);
 		if (m_GUIRenderMethod != renderMethod)
@@ -354,10 +358,11 @@ void App::UpdateInterface()
 			m_SystemRender.ChangeRenderMethod(m_Registry, (BaseRenderSystem::RenderMethod)m_GUIRenderMethod);
 		}
 
-		ImGui::InputFloat("Step", &m_GUITransformStep, 10.0f, 10.0f);
-		if (m_GUITransformStep < 5.0f)
+		ImGui::Text("Transformation");
+		ImGui::InputDouble("Step", &m_GUITransformStep, 10.0, 10.0, "%.1f");
+		if (m_GUITransformStep < 5.0)
 		{
-			m_GUITransformStep = 5.0f;
+			m_GUITransformStep = 5.0;
 		}
 
 		int transformationMethod = m_GUITransformationMethod;
@@ -416,7 +421,7 @@ void App::UpdateInterface()
 						m_Registry,
 						*m_Entities[m_SelectedEntityIdx],
 						vec,
-						10.0 * -1.0
+						10.0f * -1.0f
 					);
 					m_SystemRender.Update(m_Registry);
 				}

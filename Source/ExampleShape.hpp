@@ -2,9 +2,9 @@
 #define __EXAMPLESHAPE_HPP
 #include <vector>
 
-#include "Component/SurfaceComponent.hpp"
+#include "Component/Shape3DComponent.hpp"
 
 // Pyramid example
-std::vector<SurfaceComponent> Shape3DExample();
+Shape3DComponent Shape3DExample();
 
 #endif

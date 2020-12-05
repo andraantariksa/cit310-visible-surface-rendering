@@ -9,8 +9,7 @@
 
 #include "../Misc/EdgeBucket.hpp"
 #include "../Macro.hpp"
-#include "../Component/SurfaceComponent.hpp"
-#include "../Component/Surface2DComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
 
 // Forward declaration
 class BaseRenderSystem;
@@ -25,7 +24,7 @@ public:
 	ZBufferRenderSystem();
 	~ZBufferRenderSystem() = default;
 
-	void Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<SurfaceComponent>& surfacesVCS);
+	void Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<Triangle3DComponent>& surfacesSCS);
 
 	void Render(entt::registry& registry, BaseRenderSystem& baseRenderSystem, sf::RenderWindow& window);
 

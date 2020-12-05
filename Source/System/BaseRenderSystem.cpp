@@ -15,7 +15,8 @@
 #include "../Macro.hpp"
 #include "../Component/TransformComponent.hpp"
 #include "../Component/Shape3DComponent.hpp"
-#include "../Component/SurfaceComponent.hpp"
+#include "../Component/Surface3DComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
 #include "../Core/Camera.hpp"
 #include "../Util/Logger.hpp"
 
@@ -55,35 +56,86 @@ BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, double vanishingPo
 void BaseRenderSystem::Update(entt::registry& registry)
 {
 	// Always clear before using it! It will not deallocate the memory
-	m_SurfacesVCS.clear();
+	m_Shapes3DVCS.clear();
 
 	registry.view<Shape3DComponent, TransformComponent>().each(
-		[&](auto entity, Shape3DComponent& sphere, const TransformComponent& transform)
+		[&](auto entity, Shape3DComponent& shape3D, const TransformComponent& transform)
 		{
-			for (SurfaceComponent& surface : sphere.m_Surfaces)
+			// Transform the vertices
+			Shape3DComponent shape3DVCS;
+			shape3DVCS.m_Vertices = shape3D.m_Vertices;
+			for (std::size_t i = 0; i < shape3D.m_Vertices.size(); ++i)
 			{
-				SurfaceComponent surfaceVCS(
-					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[0], 1.0), transform)),
-					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[1], 1.0), transform)),
-					TransformWCSToVCS(TransformOCSToWCS(glm::dvec4(surface.m_Vertices[2], 1.0), transform)),
-					surface.m_Color);
-				if (!IsSurfaceIsBackFaceCulled(surfaceVCS))
+				shape3DVCS.m_Vertices[i] =
+					TransformWCSToVCS(
+						TransformOCSToWCS(
+							glm::dvec4(shape3D.m_Vertices[i], 1.0),
+							transform
+						)
+					);
+			}
+
+			for (Surface3DComponent& surface : shape3D.m_Surfaces)
+			{
+				if (!IsSurfaceIsBackFaceCulled(
+					std::array<glm::dvec3, 3>({
+						shape3DVCS.m_Vertices[surface.m_VertexIndices[0]],
+						shape3DVCS.m_Vertices[surface.m_VertexIndices[1]],
+						shape3DVCS.m_Vertices[surface.m_VertexIndices[2]] })
+				))
 				{
-					m_SurfacesVCS.push_back(surfaceVCS);
+					shape3DVCS.m_Surfaces.push_back(
+						Surface3DComponent(
+							surface.m_VertexIndices,
+							surface.m_Color
+						)
+					);
 				}
 			}
+			m_Shapes3DVCS.push_back(std::move(shape3DVCS));
 		}
 	);
+
+	std::vector<Triangle3DComponent> preprocessedTriangles;
 
 	switch (m_RenderMethod)
 	{
 	case BaseRenderSystem::RenderMethod::None:
 		break;
 	case BaseRenderSystem::RenderMethod::Painter:
-		m_SystemPainterRender.Update(registry, *this, m_SurfacesVCS);
+		for (Shape3DComponent& shape3D : m_Shapes3DVCS)
+		{
+			for (Surface3DComponent& surface3D : shape3D.m_Surfaces)
+			{
+				preprocessedTriangles.push_back(
+					std::move(Triangle3DComponent(
+						shape3D.m_Vertices[surface3D.m_VertexIndices[0]],
+						shape3D.m_Vertices[surface3D.m_VertexIndices[1]],
+						shape3D.m_Vertices[surface3D.m_VertexIndices[2]],
+						surface3D.m_Color
+					))
+				);
+			}
+		}
+		m_SystemPainterRender.Update(registry, *this, preprocessedTriangles);
 		break;
 	case BaseRenderSystem::RenderMethod::ZBuffer:
-		m_SystemZBufferRender.Update(registry, *this, m_SurfacesVCS);
+		for (Shape3DComponent& shape3D : m_Shapes3DVCS)
+		{
+			for (Surface3DComponent& surface3D : shape3D.m_Surfaces)
+			{
+				preprocessedTriangles.push_back(
+					// Change it into SCS and preserve the Z value, which will used by the Z buffer
+					std::move(Triangle3DComponent(
+						TransformVCSToSCS(glm::dvec4(shape3D.m_Vertices[surface3D.m_VertexIndices[0]], 1.0)),
+						TransformVCSToSCS(glm::dvec4(shape3D.m_Vertices[surface3D.m_VertexIndices[1]], 1.0)),
+						TransformVCSToSCS(glm::dvec4(shape3D.m_Vertices[surface3D.m_VertexIndices[2]], 1.0)),
+						surface3D.m_Color
+					))
+				);
+			}
+		}
+		m_SystemZBufferRender.Update(registry, *this, preprocessedTriangles);
 		break;
 	default:
 		break;
@@ -110,7 +162,6 @@ void BaseRenderSystem::Render(entt::registry& registry, sf::RenderWindow& window
 void BaseRenderSystem::ChangeRenderMethod(entt::registry& registry, RenderMethod renderMethod)
 {
 	m_RenderMethod = renderMethod;
-	INFO << (int)m_RenderMethod << '\n';
 	Update(registry);
 }
 
@@ -118,10 +169,10 @@ void BaseRenderSystem::ResetMatrix(double vanishing_point_z)
 {
 }
 
-bool BaseRenderSystem::IsSurfaceIsBackFaceCulled(const SurfaceComponent& surface)
+bool BaseRenderSystem::IsSurfaceIsBackFaceCulled(const std::array<glm::dvec3, 3>& triangle)
 {
-	const glm::dvec3 v1 = surface.m_Vertices[1] - surface.m_Vertices[0];
-	const glm::dvec3 v2 = surface.m_Vertices[2] - surface.m_Vertices[1];
+	const glm::dvec3 v1 = triangle[1] - triangle[0];
+	const glm::dvec3 v2 = triangle[2] - triangle[1];
 	return glm::dot(glm::cross(v1, v2), Camera::Direction) >= 0.0;
 }
 
@@ -135,7 +186,7 @@ sf::Vector2f BaseRenderSystem::TransformVec4GLMToVec2SFML(const glm::dvec4& v)
 		throw std::runtime_error("w is 0. Error on BaseRenderSystem::TransformVec4GLMToVec2SFML");
 	}
 #endif
-	return sf::Vector2f(v.x / v.w, v.y / v.w);
+	return sf::Vector2f((float)(v.x / v.w), (float)(v.y / v.w));
 }
 
 glm::dvec4 BaseRenderSystem::TransformVCSToSCS(const glm::dvec4& v)

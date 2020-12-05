@@ -27,7 +27,7 @@ private:
 	};
 	int m_GUITransformationMethod;
 	bool m_GUIWindowTips;
-	float m_GUITransformStep;
+	double m_GUITransformStep;
 	bool m_GUIShowMessageBox;
 	std::string m_GUIMessageText;
 

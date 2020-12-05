@@ -13,7 +13,8 @@
 
 #include "BaseRenderSystem.hpp"
 #include "../Misc/EdgeBucket.hpp"
-#include "../Component/SurfaceComponent.hpp"
+#include "../Component/Shape3DComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
 #include "../Macro.hpp"
 #include "../Util/Logger.hpp"
 
@@ -22,21 +23,14 @@ ZBufferRenderSystem::ZBufferRenderSystem()
 	ResetZBuffer();
 }
 
-void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<SurfaceComponent>& surfacesVCS)
+void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<Triangle3DComponent>& surfacesSCS)
 {
 	baseRenderSystem.TextureClear();
 	ResetZBuffer();
 
 	#pragma omp for
-	for (auto& surface : surfacesVCS)
+	for (auto& surface : surfacesSCS)
 	{
-		// Change it into SCS and preserve the Z value, which will used by the Z buffer
-		surface = SurfaceComponent(
-			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[0], 1.0)),
-			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[1], 1.0)),
-			baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[2], 1.0)),
-			surface.m_Color);
-
 		glm::dvec3 normal = glm::cross(
 			surface.m_Vertices[1] - surface.m_Vertices[0],
 			surface.m_Vertices[2] - surface.m_Vertices[1]

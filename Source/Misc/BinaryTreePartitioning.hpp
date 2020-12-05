@@ -8,7 +8,7 @@
 #include <ogdf/basic/GraphAttributes.h>
 #include <ogdf/fileformats/GraphIO.h>
 
-#include "../Component/SurfaceComponent.hpp"
+#include "../Component/Triangle3DComponent.hpp"
 
 class DotResult
 {
@@ -27,7 +27,7 @@ public:
 		Left
 	};
 
-	std::vector<SurfaceComponent> m_Surfaces;
+	std::vector<Triangle3DComponent> m_Surfaces;
 
 	std::unique_ptr<BinaryTreePartitioning> m_NodeLeft;
 
@@ -36,13 +36,16 @@ public:
 	BinaryTreePartitioning() = default;
 	~BinaryTreePartitioning() = default;
 
-	BinaryTreePartitioning(const std::vector<SurfaceComponent>& surface);
-	void Construct(const std::vector<SurfaceComponent>&surface);
+	BinaryTreePartitioning(const std::vector<Triangle3DComponent>& surfaces);
+	void Construct(const std::vector<Triangle3DComponent>& surfaces);
 	void Clear();
 
-	void Traverse(std::function<void(std::vector<SurfaceComponent>&)>& f);
-	void GetTreeGraph(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode = nullptr, Dir dir = Dir::None);
-	//void GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, std::vector<std::pair<int, int>>& rank, ogdf::node* parentNode=nullptr, Dir dir=Dir::None, int depth=0);
+	void Traverse(std::function<void(std::vector<Triangle3DComponent>&)>& f);
+	void GetTreeGraph(
+		ogdf::Graph& graph,
+		ogdf::GraphAttributes& graphAtt,
+		ogdf::node* parentNode = nullptr,
+		Dir dir = Dir::None);
 };
 
 #endif

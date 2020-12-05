@@ -39,8 +39,8 @@ set(FILE_SOURCES
 	"Source/Misc/BinaryTreePartitioning.cpp"
 	"Source/Component/TransformComponent.cpp"
 	"Source/Component/Shape3DComponent.cpp"
-	"Source/Component/SurfaceComponent.cpp"
-	"Source/Component/Surface2DComponent.cpp"
+	"Source/Component/Surface3DComponent.cpp"
+	"Source/Component/Triangle2DComponent.cpp"
 	"Source/System/BaseRenderSystem.cpp"
 	"Source/System/PainterRenderSystem.cpp"
 	"Source/System/ZBufferRenderSystem.cpp"
@@ -48,7 +48,8 @@ set(FILE_SOURCES
 	"Source/Util/Color.cpp"
 	"Source/Util/ModelLoader/Lexer.cpp"
 	"Source/Misc/EdgeBucket.cpp"
-	 "Source/Util/ModelLoader/Parser.cpp")
+	 "Source/Util/ModelLoader/Parser.cpp"
+	 "Source/Component/Triangle3DComponent.cpp")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_executable(${EXECUTABLE_NAME}

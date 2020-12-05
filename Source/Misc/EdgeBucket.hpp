@@ -17,19 +17,4 @@ public:
 	bool IsAlive(int y_pos);
 };
 
-class EdgeBucket2
-{
-public:
-	int m_YMax;
-	int m_XOfYMin;
-	int m_DX;
-	int m_DY;
-	int m_Carry;
-
-	EdgeBucket2();
-
-	void NextX();
-	bool IsAlive(int y_pos);
-};
-
 #endif

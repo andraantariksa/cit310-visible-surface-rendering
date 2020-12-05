@@ -6,11 +6,9 @@
 
 #include "../Util/Logger.hpp"
 
-#define PI 3.14159265358979323846f
-
 static inline double Deg2Rad(double deg)
 {
-	return deg * PI / 180.0;
+	return deg * 3.14159265358979323846f / 180.0;
 }
 
 void TransformSystem::Reset(entt::registry& registry, entt::entity& entity)
@@ -40,5 +38,3 @@ void TransformSystem::UpdateMatTransform(entt::registry& registry, entt::entity&
 	TransformComponent& transformComponent = registry.get<TransformComponent>(entity);
 	transformComponent.m_MatTransform = transformComponent.m_MatTranslation * transformComponent.m_MatRotation;
 }
-
-#undef PI
