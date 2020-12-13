@@ -76,11 +76,6 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 		for (int y = 0; y < sortedEdgeArray.size(); ++y)
 		{
-			m_ActiveEdges.insert(
-				m_ActiveEdges.end(),
-				sortedEdgeArray[y].begin(),
-				sortedEdgeArray[y].end());
-
 			m_ActiveEdges.erase(
 				std::remove_if(
 					m_ActiveEdges.begin(),
@@ -92,6 +87,11 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 					}
 				),
 				m_ActiveEdges.end());
+
+			m_ActiveEdges.insert(
+				m_ActiveEdges.end(),
+				sortedEdgeArray[y].begin(),
+				sortedEdgeArray[y].end());
 
 			std::sort(
 				m_ActiveEdges.begin(),
