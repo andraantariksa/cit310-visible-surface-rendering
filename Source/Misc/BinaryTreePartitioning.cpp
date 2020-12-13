@@ -96,7 +96,7 @@ void BinaryTreePartitioning::Construct(const std::vector<Triangle3DComponent>& s
 	// First surface as the reference surface
 	const Triangle3DComponent referenceSurface = surfaces[0];
 	const glm::dvec3& referenceVertex = referenceSurface.m_Vertices[0];
-	m_Surfaces.push_back(referenceSurface);
+	m_Surface = std::make_unique<Triangle3DComponent>(referenceSurface);
 	glm::dvec3 referenceSurfaceNormal = glm::cross(
 		referenceSurface.m_Vertices[1] - referenceSurface.m_Vertices[0],
 		referenceSurface.m_Vertices[2] - referenceSurface.m_Vertices[1]);
@@ -148,9 +148,6 @@ void BinaryTreePartitioning::Construct(const std::vector<Triangle3DComponent>& s
 		{
 			backSideSurfaces.push_back(*it);
 		}
-		// TODO
-		// Fix the circular painter algorithm
-		// The rest of the control flows create a circular surface
 		// Intersect
 		else if (lt(dotProductResults[0].m_Dot, 0.0) && lt(dotProductResults[1].m_Dot, 0.0) && gt(dotProductResults[2].m_Dot, 0.0))
 		{
@@ -294,13 +291,16 @@ void BinaryTreePartitioning::Construct(const std::vector<Triangle3DComponent>& s
 	}
 }
 
-void BinaryTreePartitioning::Traverse(std::function<void(std::vector<Triangle3DComponent>&)>& f)
+void BinaryTreePartitioning::Traverse(std::function<void(Triangle3DComponent&)>& f)
 {
 	if (m_NodeLeft)
 	{
 		m_NodeLeft->Traverse(f);
 	}
-	f(m_Surfaces);
+	if (m_Surface)
+	{
+		f(*m_Surface);
+	}
 	if (m_NodeRight)
 	{
 		m_NodeRight->Traverse(f);
@@ -310,34 +310,20 @@ void BinaryTreePartitioning::Traverse(std::function<void(std::vector<Triangle3DC
 //void BinaryTreePartitioning::GetCGraphTree(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, std::vector<std::pair<int, int>>& rank, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir, int depth)
 void BinaryTreePartitioning::GetTreeGraph(ogdf::Graph& graph, ogdf::GraphAttributes& graphAtt, ogdf::node* parentNode, BinaryTreePartitioning::Dir dir)
 {
-	/*std::stringstream ss;
-	ogdf::node currentLevelNode = graph.newNode();
-	graphAtt.strokeColor(currentLevelNode) = ogdf::Color(255, 0, 0);
-	rank.push_back(std::make_pair(currentLevelNode->index(), depth));
-
-	for (auto& surface : m_Surfaces)
-	{
-		ss << "a";
-
-		ogdf::node currentNode = graph.newNode();
-		graphAtt.fillColor(currentNode) = ogdf::Color(surface.m_Color.r, surface.m_Color.g, surface.m_Color.b);
-		graphAtt.label(currentNode) = ss.str();
-		rank.push_back(std::make_pair(currentNode->index(), depth));
-		ss.clear();
-
-		ogdf::edge edgeParentToCurrent = graph.newEdge(currentLevelNode, currentNode);
-	}*/
-
 	std::stringstream ss;
 	ogdf::node currentLevelNode = graph.newNode();
 
-	if (!m_Surfaces.empty())
+	if (m_Surface)
 	{
-		auto& surface = m_Surfaces[0];
-		ss << glm::to_string(surface.m_Vertices[0]) << "\n" << glm::to_string(surface.m_Vertices[1]) << "\n" << glm::to_string(surface.m_Vertices[2]);
-		graphAtt.fillColor(currentLevelNode) = ogdf::Color(surface.m_Color.r, surface.m_Color.g, surface.m_Color.b);
+		ss << glm::to_string(m_Surface->m_Vertices[0]) << "\n"
+			<< glm::to_string(m_Surface->m_Vertices[1]) << "\n"
+			<< glm::to_string(m_Surface->m_Vertices[2]);
+		graphAtt.fillColor(currentLevelNode) = ogdf::Color(
+			m_Surface->m_Color.r,
+			m_Surface->m_Color.g,
+			m_Surface->m_Color.b);
 		graphAtt.label(currentLevelNode) = ss.str();
-		graphAtt.width(currentLevelNode) = graphAtt.width(currentLevelNode) * 3;
+		graphAtt.width(currentLevelNode) = graphAtt.width(currentLevelNode) * 3.0;
 	}
 
 	if (parentNode)
@@ -366,5 +352,5 @@ void BinaryTreePartitioning::Clear()
 {
 	m_NodeLeft.reset();
 	m_NodeRight.reset();
-	m_Surfaces.clear();
+	m_Surface.reset();
 }

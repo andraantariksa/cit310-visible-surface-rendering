@@ -65,11 +65,11 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	target_compile_options(${EXECUTABLE_NAME} PUBLIC "-std=c++17")
 	# Resize the stack size
-	set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS -Wl,--stack,8000000)
+	#set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS -Wl,--stack,8000000)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	target_compile_options(${EXECUTABLE_NAME} PUBLIC "/std:c++17")
 	# Resize the stack size
-	set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS /STACK:8000000)
+	#set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS /STACK:8000000)
 endif()
 
 # ImGui
@@ -102,3 +102,4 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 	"${CMAKE_SOURCE_DIR}/Lib/entt/single_include"
 	"${CMAKE_SOURCE_DIR}/Lib/portable-file-dialogs"
 	"${CMAKE_SOURCE_DIR}/Lib/glm")
+

@@ -13,8 +13,8 @@ public:
 
 	EdgeBucket();
 
-	void NextX(double A, double B, double C);
-	bool IsAlive(int y_pos);
+	void NextXAndZ(double A, double B, double C);
+	bool IsAlive(int yPos);
 };
 
 #endif

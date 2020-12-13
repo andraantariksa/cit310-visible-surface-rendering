@@ -23,23 +23,19 @@
 
 void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& baseRenderSystem, std::vector<Triangle3DComponent>& surfacesVCS)
 {
-	baseRenderSystem.TextureClear();
-	m_CachedSurfaces3D.clear();
+	m_CachedTriangle2D.clear();
 	m_BinaryPartitioningTree.Clear();
 
 	m_BinaryPartitioningTree.Construct(surfacesVCS);
 
-	std::function<void(std::vector<Triangle3DComponent>&)> traverseLambda = [&](std::vector<Triangle3DComponent>& surfaces) -> void {
-		for (auto& surface : surfaces)
-		{
-			m_CachedSurfaces3D.push_back(
-				Triangle2DComponent(
-					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[0], 1.0)),
-					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[1], 1.0)),
-					baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[2], 1.0)),
-					surface.m_Color)
-			);
-		}
+	std::function<void(Triangle3DComponent&)> traverseLambda = [&](Triangle3DComponent& surface) -> void {
+		m_CachedTriangle2D.push_back(
+			Triangle2DComponent(
+				baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[0], 1.0)),
+				baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[1], 1.0)),
+				baseRenderSystem.TransformVCSToSCS(glm::dvec4(surface.m_Vertices[2], 1.0)),
+				surface.m_Color)
+		);
 	};
 
 	m_BinaryPartitioningTree.Traverse(traverseLambda);
@@ -48,7 +44,7 @@ void PainterRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 void PainterRenderSystem::Render(entt::registry& registry, BaseRenderSystem& baseRenderSystem, sf::RenderWindow& window)
 {
 	sf::VertexArray vertArray(sf::Triangles);
-	for (auto& surface : m_CachedSurfaces3D)
+	for (auto& surface : m_CachedTriangle2D)
 	{
 		vertArray.append(
 			sf::Vertex(
@@ -91,5 +87,7 @@ void PainterRenderSystem::PrintBinaryPartitioningTree()
 	sugiyamaLayout.call(graphAtt);
 
 	std::fstream file("tree.svg", std::ios::out);
-	ogdf::GraphIO::drawSVG(graphAtt, file);
+	ogdf::GraphIO::SVGSettings svgSettings;
+	svgSettings.fontSize(6);
+	ogdf::GraphIO::drawSVG(graphAtt, file, svgSettings);
 }

@@ -18,7 +18,7 @@ class BaseRenderSystem;
 class ZBufferRenderSystem
 {
 public:
-	std::array<std::array<double, WINDOW_WIDTH>, WINDOW_HEIGHT> m_ZBuffer;
+	std::vector<std::vector<double>> m_ZBuffer;
 	std::vector<EdgeBucket> m_ActiveEdges;
 
 	ZBufferRenderSystem();
@@ -30,7 +30,7 @@ public:
 
 	void ResetZBuffer();
 
-	std::tuple<EdgeBucket, int> GetEdgeBucket(glm::dvec3& a, glm::dvec3& b);
+	std::tuple<EdgeBucket, int> GetEdgeBucketAndYMin(glm::dvec3& a, glm::dvec3& b);
 };
 
 #endif

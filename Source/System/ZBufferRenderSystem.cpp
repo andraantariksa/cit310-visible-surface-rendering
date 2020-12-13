@@ -20,6 +20,12 @@
 
 ZBufferRenderSystem::ZBufferRenderSystem()
 {
+	m_ZBuffer.resize(WINDOW_HEIGHT);
+	for (auto& it : m_ZBuffer)
+	{
+		it.resize(WINDOW_WIDTH);
+	}
+
 	ResetZBuffer();
 }
 
@@ -27,8 +33,8 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 {
 	baseRenderSystem.TextureClear();
 	ResetZBuffer();
+	std::vector<std::vector<EdgeBucket>> sortedEdgeArray;
 
-	#pragma omp for
 	for (auto& surface : surfacesSCS)
 	{
 		glm::dvec3 normal = glm::cross(
@@ -46,7 +52,8 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 		);
 
 		m_ActiveEdges.clear();
-		std::vector<std::vector<EdgeBucket>> sortedEdgeArray(yMaxOfPolygon->y - yMinOfPolygon->y + 1);
+		sortedEdgeArray.clear();
+		sortedEdgeArray.resize(yMaxOfPolygon->y - yMinOfPolygon->y + 1);
 
 		// Traverse on edge
 		glm::dvec3 prev = *std::prev(surface.m_Vertices.end());
@@ -58,7 +65,7 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 				continue;
 			}
 
-			auto [result, yMin] = GetEdgeBucket(prev, current);
+			auto [result, yMin] = GetEdgeBucketAndYMin(prev, current);
 			result.m_YMax -= (int)yMinOfPolygon->y;
 			sortedEdgeArray[yMin - (int)yMinOfPolygon->y].push_back(
 				std::move(result)
@@ -69,19 +76,22 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 
 		for (int y = 0; y < sortedEdgeArray.size(); ++y)
 		{
+			m_ActiveEdges.insert(
+				m_ActiveEdges.end(),
+				sortedEdgeArray[y].begin(),
+				sortedEdgeArray[y].end());
+
 			m_ActiveEdges.erase(
 				std::remove_if(
 					m_ActiveEdges.begin(),
 					m_ActiveEdges.end(),
 					[&](EdgeBucket& edgeBucket)
 					{
-						edgeBucket.NextX(normal.x, normal.y, normal.z);
+						edgeBucket.NextXAndZ(normal.x, normal.y, normal.z);
 						return !edgeBucket.IsAlive(y);
 					}
 				),
 				m_ActiveEdges.end());
-
-			m_ActiveEdges.insert(m_ActiveEdges.end(), sortedEdgeArray[y].begin(), sortedEdgeArray[y].end());
 
 			std::sort(
 				m_ActiveEdges.begin(),
@@ -91,7 +101,7 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 				}
 			);
 
-			#pragma omp for
+			#pragma omp parallel for
 			for (auto edgeBucket = m_ActiveEdges.begin(); edgeBucket != m_ActiveEdges.end(); ++(++edgeBucket))
 			{
 				auto nextEdgeBucket = std::next(edgeBucket);
@@ -102,6 +112,7 @@ void ZBufferRenderSystem::Update(entt::registry& registry, BaseRenderSystem& bas
 				}*/
 
 				double z = edgeBucket->m_ZOfYMin;
+				#pragma omp parallel for
 				for (int x = edgeBucket->m_XOfYMin; x <= nextEdgeBucket->m_XOfYMin; ++x)
 				{
 					const auto position = glm::ivec2(x, y + (int)yMinOfPolygon->y);
@@ -131,8 +142,10 @@ void ZBufferRenderSystem::Render(entt::registry& registry, BaseRenderSystem& bas
 void ZBufferRenderSystem::ResetZBuffer()
 {
 	// Reset ZBuffer
+	#pragma omp parallel for
 	for (auto& it : m_ZBuffer)
 	{
+		#pragma omp parallel for
 		for (auto& it2: it)
 		{
 			it2 = -INFINITY;
@@ -140,7 +153,7 @@ void ZBufferRenderSystem::ResetZBuffer()
 	}
 }
 
-std::tuple<EdgeBucket, int> ZBufferRenderSystem::GetEdgeBucket(glm::dvec3& a, glm::dvec3& b)
+std::tuple<EdgeBucket, int> ZBufferRenderSystem::GetEdgeBucketAndYMin(glm::dvec3& a, glm::dvec3& b)
 {
 	EdgeBucket edgeBucket;
 	int yMin;

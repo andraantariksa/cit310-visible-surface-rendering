@@ -18,7 +18,7 @@ public:
 	// Careful. Use a lot of stack memory
 	sf::Texture m_Texture;
 	sf::Sprite m_Sprite;
-	std::array<sf::Uint8, WINDOW_WIDTH * 4 * WINDOW_HEIGHT> m_TexturePixels;
+	std::vector<sf::Uint8> m_TexturePixels;
 
 	TransformSystem m_SystemTransform;
 	ZBufferRenderSystem m_SystemZBufferRender;
@@ -43,6 +43,8 @@ public:
 
 	BaseRenderSystem(RenderMethod renderMethod=RenderMethod::Painter, double vanishingPointZ=500.0);
 	~BaseRenderSystem() = default;
+
+	void SetTransformationMatrix(double vanishingPointZ = 500.0);
 
 	void Update(entt::registry& registry);
 	void Render(entt::registry& registry, sf::RenderWindow& window);

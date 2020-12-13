@@ -27,10 +27,17 @@ BaseRenderSystem::BaseRenderSystem(RenderMethod renderMethod, double vanishingPo
 	// Painter as the default because it's the first one I made :p
 	m_RenderMethod(renderMethod)
 {
+	m_TexturePixels.resize(WINDOW_WIDTH * 4 * WINDOW_HEIGHT);
+
 	m_Texture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
 	m_Sprite.setTexture(m_Texture);
 	TextureClear();
 
+	SetTransformationMatrix(vanishingPointZ);
+}
+
+void BaseRenderSystem::SetTransformationMatrix(double vanishingPointZ)
+{
 	const double scaleX = 1.0;
 	const double scaleY = 1.0;
 	const double translateX = (double)WINDOW_WIDTH / 2;
@@ -64,6 +71,7 @@ void BaseRenderSystem::Update(entt::registry& registry)
 			// Transform the vertices
 			Shape3DComponent shape3DVCS;
 			shape3DVCS.m_Vertices = shape3D.m_Vertices;
+			#pragma omp parallel for
 			for (std::size_t i = 0; i < shape3D.m_Vertices.size(); ++i)
 			{
 				shape3DVCS.m_Vertices[i] =
@@ -211,7 +219,7 @@ glm::dvec4 BaseRenderSystem::TransformWCSToVCS(const glm::dvec4& v)
 #else
 	if (result.w == 0.0)
 	{
-		throw std::runtime_error("w is 0. Error in BaseRenderSystem::TransformWCSToVCS");
+		throw std::runtime_error("w is 0. Error in BaseRenderSystem::TransformWCSToVCS.\nMight be caused by the zc!");
 	}
 #endif
 	const auto x = result.x / result.w;
@@ -262,12 +270,6 @@ void BaseRenderSystem::TextureClear()
 
 void BaseRenderSystem::TextureSetPixel(const glm::ivec2& position, const sf::Color& color)
 {
-	if (position.x >= WINDOW_WIDTH || position.y >= WINDOW_HEIGHT ||
-		position.x < 0 || position.y < 0)
-	{
-		return;
-	}
-
 	const size_t currentPixelPos = ((size_t)position.x + ((size_t)position.y * WINDOW_WIDTH)) * 4L;
 	m_TexturePixels[currentPixelPos] = color.r;
 	m_TexturePixels[currentPixelPos + 1L] = color.g;

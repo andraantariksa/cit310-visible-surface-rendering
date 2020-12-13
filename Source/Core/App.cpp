@@ -28,11 +28,12 @@ App::App() :
 	m_GUIWindowTips(true),
 	// -1 means not selecting anything
 	m_SelectedEntityIdx(-1),
-	m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::ZBuffer),
+	m_GUIRenderMethod((int)BaseRenderSystem::RenderMethod::Painter),
 	m_GUITransformationMethod((int)TransformationMethod::Translation),
-	m_GUITransformStep(10.0f),
-	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 500.0f),
-	m_GUIShowMessageBox(false)
+	m_GUITransformStep(10.0),
+	m_SystemRender((BaseRenderSystem::RenderMethod)m_GUIRenderMethod, 1000.0),
+	m_GUIShowMessageBox(false),
+	m_GUIZC(1000.0)
 {
 	m_Window.setFramerateLimit(20);
 	ImGui::SFML::Init(m_Window);
@@ -41,19 +42,23 @@ App::App() :
 	Camera::Direction = { 0.0f, 0.0f, -1.0f };
 
 	// Initialize default 2 pyramid
-	m_Entities[0] = std::make_unique<entt::entity>(m_Registry.create());
-	m_Registry.emplace<Shape3DComponent>(*m_Entities[0], Shape3DExample());
-	m_Registry.emplace<TransformComponent>(*m_Entities[0]);
+	{
+		m_Entities[0] = std::make_unique<entt::entity>(m_Registry.create());
+		m_Registry.emplace<Shape3DComponent>(*m_Entities[0], Shape3DExample());
+		m_Registry.emplace<TransformComponent>(*m_Entities[0]);
 
-	m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::vec3(-50.0f, 0.0f, 0.0f));
+		m_SystemTransform.Translate(m_Registry, *m_Entities[0], glm::dvec3(-50.0, 0.0, 0.0));
+	}
 
-	m_Entities[1] = std::make_unique<entt::entity>(m_Registry.create());
-	m_Registry.emplace<Shape3DComponent>(*m_Entities[1], Shape3DExample());
-	m_Registry.emplace<TransformComponent>(*m_Entities[1]);
+	{
+		m_Entities[1] = std::make_unique<entt::entity>(m_Registry.create());
+		m_Registry.emplace<Shape3DComponent>(*m_Entities[1], Shape3DExample());
+		m_Registry.emplace<TransformComponent>(*m_Entities[1]);
 
-	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::vec3(1.0f, 0.0f, 0.0f), 30.0f);
-	m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::vec3(0.0f, 1.0f, 0.0f), 30.0f);
-	m_SystemTransform.Translate(m_Registry, *m_Entities[1], glm::vec3(50.0f, 0.0f, 0.0f));
+		m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::dvec3(1.0, 0.0, 0.0), 30.0);
+		m_SystemTransform.Rotate(m_Registry, *m_Entities[1], glm::dvec3(0.0, 1.0, 0.0), 30.0);
+		m_SystemTransform.Translate(m_Registry, *m_Entities[1], glm::dvec3(50.0, 0.0, 0.0));
+	}
 }
 
 App::~App()
@@ -90,6 +95,16 @@ void App::Run()
 				else if (event.key.code == sf::Keyboard::Escape)
 				{
 					m_SelectedEntityIdx = -1;
+				}
+				else if (event.key.code == sf::Keyboard::Delete)
+				{
+					if (m_SelectedEntityIdx != -1 && m_Entities[m_SelectedEntityIdx])
+					{
+						m_Registry.destroy(*m_Entities[m_SelectedEntityIdx]);
+						m_Entities[m_SelectedEntityIdx].reset();
+						m_SelectedEntityIdx = -1;
+						Update();
+					}
 				}
 				else if (event.key.code >= sf::Keyboard::A && event.key.code <= sf::Keyboard::Z)
 				{
@@ -143,7 +158,7 @@ void App::Run()
 										*m_Entities[m_SelectedEntityIdx],
 										vec
 									);
-									m_SystemRender.Update(m_Registry);
+									Update();
 								}
 								break;
 							}
@@ -183,7 +198,7 @@ void App::Run()
 										vec,
 										m_GUITransformStep * angleSign
 									);
-									m_SystemRender.Update(m_Registry);
+									Update();
 								}
 								break;
 							}
@@ -247,7 +262,7 @@ void App::UpdateInterface()
 		{
 			if (ImGui::MenuItem("Open"))
 			{
-				int availableSlot = 0;
+				int availableSlot = -1;
 				for (int i = 0; i < 9; ++i)
 				{
 					if (!m_Entities[i])
@@ -257,7 +272,7 @@ void App::UpdateInterface()
 					}
 				}
 
-				if (availableSlot)
+				if (availableSlot != -1)
 				{
 					auto openedFile = pfd::open_file("Choose file to read", "", { "Simple 3D Object", "*.sobj" });
 					auto openedFileResult = openedFile.result();
@@ -284,7 +299,7 @@ void App::UpdateInterface()
 							m_Registry.emplace<Shape3DComponent>(*m_Entities[availableSlot], shape3D);
 							m_Registry.emplace<TransformComponent>(*m_Entities[availableSlot]);
 
-							m_SystemRender.Update(m_Registry);
+							Update();
 						}
 						catch (std::exception& ex)
 						{
@@ -343,7 +358,7 @@ void App::UpdateInterface()
 				m_Registry.destroy(*m_Entities[m_SelectedEntityIdx]);
 				m_Entities[m_SelectedEntityIdx].reset();
 				m_SelectedEntityIdx = -1;
-				m_SystemRender.Update(m_Registry);
+				Update();
 			}
 		}
 
@@ -357,8 +372,26 @@ void App::UpdateInterface()
 
 			m_SystemRender.ChangeRenderMethod(m_Registry, (BaseRenderSystem::RenderMethod)m_GUIRenderMethod);
 		}
+		if (m_GUIRenderMethod == (int)BaseRenderSystem::RenderMethod::Painter)
+		{
+			if (ImGui::Button("Print Tree"))
+			{
+				m_SystemRender.Print();
+			}
+		}
 
 		ImGui::Text("Transformation");
+		double prevm_GUIZC = m_GUIZC;
+		ImGui::InputDouble("zc Value", &m_GUIZC, 100.0, 100.0, "%.1f");
+		if (m_GUIZC < 500.0)
+		{
+			m_GUIZC = 500.0;
+		}
+		if (prevm_GUIZC != m_GUIZC)
+		{
+			m_SystemRender.SetTransformationMatrix(m_GUIZC);
+			Update();
+		}
 		ImGui::InputDouble("Step", &m_GUITransformStep, 10.0, 10.0, "%.1f");
 		if (m_GUITransformStep < 5.0)
 		{
@@ -387,7 +420,7 @@ void App::UpdateInterface()
 						vec,
 						10.0 * 1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("X-"))
 				{
@@ -399,7 +432,7 @@ void App::UpdateInterface()
 						vec,
 						10.0 * -1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Y+"))
 				{
@@ -411,7 +444,7 @@ void App::UpdateInterface()
 						vec,
 						10.0 * 1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Y-"))
 				{
@@ -421,9 +454,9 @@ void App::UpdateInterface()
 						m_Registry,
 						*m_Entities[m_SelectedEntityIdx],
 						vec,
-						10.0f * -1.0f
+						10.0f * -1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Z+"))
 				{
@@ -435,7 +468,7 @@ void App::UpdateInterface()
 						vec,
 						10.0 * 1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Z-"))
 				{
@@ -447,7 +480,7 @@ void App::UpdateInterface()
 						vec,
 						10.0 * -1.0
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 			}
 			else if (transformationMethod == (int)TransformationMethod::Translation)
@@ -461,7 +494,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Backward"))
 				{
@@ -472,7 +505,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Up"))
 				{
@@ -483,7 +516,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Down"))
 				{
@@ -494,7 +527,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Right"))
 				{
@@ -505,7 +538,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 				if (ImGui::Button("Left"))
 				{
@@ -516,7 +549,7 @@ void App::UpdateInterface()
 						*m_Entities[m_SelectedEntityIdx],
 						vec
 					);
-					m_SystemRender.Update(m_Registry);
+					Update();
 				}
 			}
 		}
@@ -534,8 +567,10 @@ void App::UpdateInterface()
 			ImGui::Text("Press F4 to change the rendering algorithm to Z-Buffer");
 			ImGui::Text("Press 1 to 9 to change the selected object");
 			ImGui::Text("Press ESC to deselect the selected object");
+			ImGui::Text("Press Delete to delete the selected object");
 			ImGui::Text("Press Q, W, E, A, S, D to do the transformation");
 			ImGui::Text("Press P when using Painter Algorithm to print the tree");
+			ImGui::Text("The printed tree will be available as an SVG file in the same\ndirectory as the program executable");
 		}
 		ImGui::End();
 	}
@@ -545,7 +580,7 @@ void App::UpdateInterface()
 		ImGui::SetNextWindowPos(ImVec2(300.0f, 200.0f));
 		if (ImGui::Begin("INFO", &m_GUIShowMessageBox,
 			ImGuiWindowFlags_NoCollapse |
-			ImGuiWindowFlags_NoMove     |
+			ImGuiWindowFlags_NoMove |
 			ImGuiWindowFlags_NoResize))
 		{
 			ImGui::Text(m_GUIMessageText.c_str());

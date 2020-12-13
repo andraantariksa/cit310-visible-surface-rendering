@@ -21,7 +21,7 @@ class PainterRenderSystem
 public:
 	BinaryTreePartitioning m_BinaryPartitioningTree;
 
-	std::vector<Triangle2DComponent> m_CachedSurfaces3D;
+	std::vector<Triangle2DComponent> m_CachedTriangle2D;
 
 	PainterRenderSystem() = default;
 	~PainterRenderSystem() = default;

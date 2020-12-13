@@ -27,7 +27,7 @@ public:
 		Left
 	};
 
-	std::vector<Triangle3DComponent> m_Surfaces;
+	std::unique_ptr<Triangle3DComponent> m_Surface;
 
 	std::unique_ptr<BinaryTreePartitioning> m_NodeLeft;
 
@@ -40,7 +40,7 @@ public:
 	void Construct(const std::vector<Triangle3DComponent>& surfaces);
 	void Clear();
 
-	void Traverse(std::function<void(std::vector<Triangle3DComponent>&)>& f);
+	void Traverse(std::function<void(Triangle3DComponent&)>& f);
 	void GetTreeGraph(
 		ogdf::Graph& graph,
 		ogdf::GraphAttributes& graphAtt,
