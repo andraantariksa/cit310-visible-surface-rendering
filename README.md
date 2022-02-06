@@ -5,6 +5,7 @@ Software 3D visible surface detection from scratch.
 ![Preview](assets/screenshot.png)
 
 Project specification: https://drive.google.com/file/d/1P8CvyMibf9ybc6awHf14rL9yykMASFDB/view?usp=sharing
+Documentation: https://docs.google.com/document/d/1R-9qPYU4d2uEHgacrtewMTQuhr-W_LVN5OjD2--VuDs/edit?usp=sharing
 
 ## Features
 
